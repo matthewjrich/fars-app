@@ -81,6 +81,29 @@
     navigator.clipboard.writeText(lines.join('\n')).catch(() => {});
   }
 
+  function resetAll() {
+    if (!confirm('Reset all training cost data? This cannot be undone.')) return;
+    evtUnit  = '';
+    evtName  = '';
+    evtPax   = 181;
+    evtStart = '';
+    evtEnd   = '';
+    evtDays  = 10;
+    cl1Mre   = 1;
+    cl1Ugr   = 2;
+    cl1Jd    = 0;
+    cl1Water = 2;
+    cl2Extra = 298;
+    cl2Popo  = 0;
+    vehQty   = Object.fromEntries(vehNames.map(k => [k, 0]));
+    vehMiles = Object.fromEntries(vehNames.map(k => [k, 0]));
+    polQty   = POL_ITEMS.map(() => 0);
+    cl4Wire  = 0;
+    cl4Conc  = 0;
+    cl4Other = 0;
+    cl8Extra = 0;
+  }
+
   function downloadCostCsv() {
     const rows = [
       ['Class','Item','Qty','Cost'],
@@ -128,9 +151,10 @@
     <div style="font-size:28px;color:var(--gold);font-family:'Share Tech',sans-serif;font-weight:700;">{fmtCurrency(grandTotal)}</div>
     <div style="font-size:12px;color:var(--text-dim);">{evtPax} PAX · {evtDays} days</div>
   </div>
-  <div style="display:flex;gap:10px;">
+  <div style="display:flex;gap:10px;flex-wrap:wrap;">
     <button class="btn" on:click={copyCostLogstat}>📋 Copy LOGSTAT</button>
     <button class="btn" on:click={downloadCostCsv}>⬇ Download CSV</button>
+    <button class="btn btn-outline" style="color:#ffa198;border-color:#ffa198;" on:click={resetAll}>↺ Reset</button>
   </div>
 </div>
 
