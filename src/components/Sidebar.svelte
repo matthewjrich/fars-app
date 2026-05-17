@@ -128,6 +128,10 @@
     return { tubes: acc.tubes + v.tubes, trucks: acc.trucks + v.trucks, trailers: acc.trailers + v.trailers, cats: acc.cats + v.cats, hmmwvs: acc.hmmwvs + v.hmmwvs };
   }, { tubes: 0, trucks: 0, trailers: 0, cats: 0, hmmwvs: 0 });
 
+  // Auto-sync CATs and HMMWVs to tube count (1:1 doctrinal relationship)
+  $: if (!useRoster && isM109) catQty   = tubes;
+  $: if (!useRoster && isM119) hmmwvQty = tubes;
+
   // Standard unit type change — skipped when roster is driving config
   function onUnitTypeChange() {
     if (useRoster && echelon === 'Battalion') return;
