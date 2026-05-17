@@ -2,17 +2,19 @@
   import { createEventDispatcher } from 'svelte';
   const dispatch = createEventDispatcher();
 
-  export let echelon, unitType, tubes;
-  export let truckQty, trailQty, catQty, hmmwvQty;
+  /** @type {string} */ export let echelon;
+  /** @type {string} */ export let unitType;
+  /** @type {number} */ export let tubes;
+  /** @type {number} */ export let truckQty;
+  /** @type {number} */ export let trailQty;
+  /** @type {number} */ export let catQty;
+  /** @type {number} */ export let hmmwvQty;
   export let cclMode, planMode, loadPct;
-  export let csrMode, generalCsr;
   export let dist, speed, loadTime, planHours;
   export let authCsr, firingRate;
   export let paaGunLine, paaBsa;
   export let dudRate, reloadTime;
   export let config;
-  export let munKeys = [];
-  export let csrByRound = {};
   export let sidebarOpen = false;
 
   $: isM109   = config.isM109;
@@ -21,17 +23,44 @@
   $: isMlrs   = config.isMlrs;
 
   // ── Accordion state ──
-  let open = { unit: true, roster: false, load: false, plan: false, csr: false, sustain: false, dos: false, paa: false, tac: false };
+  let open = /** @type {Record<string,boolean>} */({ unit: true, load: false, plan: false, sustain: false, dos: false, paa: false, tac: false });
   function toggle(k) { open = { ...open, [k]: !open[k] }; }
 
+  // ── Unit category ──
+  export let unitCategory = 'Cannon (SP)';
+
+  const CATEGORY_SYSTEMS = /** @type {Record<string,string[]>} */({
+    'Cannon (SP)': ['M109A7', 'M109A6'],
+    'Cannon (T)':  ['M777A2', 'M119A3'],
+    'Rocket':      ['HIMARS', 'MLRS'],
+  });
+  const CATEGORY_DEFAULTS = /** @type {Record<string,string>} */({
+    'Cannon (SP)': 'M109A7',
+    'Cannon (T)':  'M777A2',
+    'Rocket':      'HIMARS',
+  });
+
+  function onCategoryChange() {
+    if (unitCategory === 'Composite') {
+      if (echelon === 'Battalion') {
+        useRoster = true;
+        syncRoster();
+      }
+    } else {
+      useRoster = false;
+      unitType = CATEGORY_DEFAULTS[unitCategory];
+      onUnitTypeChange();
+    }
+  }
+
   // ── Battery Roster ──
-  let useRoster = false;
-  let nextId = 4;
-  let rosterBatteries = [
+  export let useRoster = false;
+  export let rosterBatteries = [
     { id: 1, unitType: 'M109A7', tubes: 6 },
     { id: 2, unitType: 'M109A7', tubes: 6 },
     { id: 3, unitType: 'M109A7', tubes: 6 },
   ];
+  let nextId = 4;
 
   // Vehicle counts derived from a single battery
   function batteryVehicles(b) {
@@ -73,13 +102,16 @@
 
   function addBattery() {
     rosterBatteries = [...rosterBatteries, { id: nextId++, unitType: 'M109A7', tubes: 6 }];
+    dispatch('rosterchange', rosterBatteries);
   }
   function removeBattery(id) {
     if (rosterBatteries.length <= 1) return;
     rosterBatteries = rosterBatteries.filter(b => b.id !== id);
+    dispatch('rosterchange', rosterBatteries);
   }
   function updateBattery(id, field, value) {
     rosterBatteries = rosterBatteries.map(b => b.id === id ? { ...b, [field]: value } : b);
+    dispatch('rosterchange', rosterBatteries);
   }
 
   // Roster summary for display
@@ -120,9 +152,7 @@
     }
   }
 
-  function handleCsrByRound(key, value) {
-    dispatch('csrbyround', { key, value: parseFloat(value) || 0 });
-  }
+
 </script>
 
 <div class="sidebar-inner" class:open={sidebarOpen}>
@@ -147,6 +177,8 @@
     </div>
     {#if open.unit}
     <div class="acc-body">
+
+      <!-- Echelon -->
       <div class="field">
         <label>Echelon</label>
         <select bind:value={echelon} on:change={onUnitTypeChange}>
@@ -155,20 +187,98 @@
           <option>Platoon</option>
         </select>
       </div>
+
+      <!-- Unit Type (doctrinal category) -->
       <div class="field">
-        <label>{useRoster ? 'Primary Ammo System' : 'Unit Type'}</label>
-        <select bind:value={unitType} on:change={onUnitTypeChange}>
-          <option>M109A7</option>
-          <option>M109A6</option>
-          <option>M777A2</option>
-          <option>M119A3</option>
-          <option>HIMARS</option>
-          <option>MLRS</option>
+        <label>Unit Type</label>
+        <select bind:value={unitCategory} on:change={onCategoryChange}>
+          <option>Composite</option>
+          <option>Cannon (T)</option>
+          <option>Cannon (SP)</option>
+          <option>Rocket</option>
         </select>
-        {#if useRoster}
-          <div class="caption">Drives RSR, DODIC &amp; EFC tabs for mixed battalions</div>
-        {/if}
       </div>
+
+      <!-- Primary system selector — full list for Composite, sub-list otherwise -->
+      {#if unitCategory === 'Composite'}
+        <div class="field">
+          <label>Primary Ammo System</label>
+          <select bind:value={unitType} on:change={onUnitTypeChange}>
+            <option>M109A7</option>
+            <option>M109A6</option>
+            <option>M777A2</option>
+            <option>M119A3</option>
+            <option>HIMARS</option>
+            <option>MLRS</option>
+          </select>
+          <div class="caption">Drives haul capacity, DODIC &amp; EFC calculations</div>
+        </div>
+      {:else}
+        <div class="field">
+          <label>Primary Weapon System</label>
+          <select bind:value={unitType} on:change={onUnitTypeChange}>
+            {#each CATEGORY_SYSTEMS[unitCategory] as sys}
+              <option>{sys}</option>
+            {/each}
+          </select>
+        </div>
+      {/if}
+
+      <!-- Non-Standard checkbox (non-Composite Battalion only) -->
+      {#if echelon === 'Battalion' && unitCategory !== 'Composite'}
+        <div class="toggle-row" style="margin-bottom:10px;">
+          <input type="checkbox" id="useRoster" bind:checked={useRoster}
+            on:change={() => { if (useRoster) syncRoster(); else onUnitTypeChange(); }}>
+          <label for="useRoster" style="color:var(--text-bright);font-weight:700;">Non-Standard Configuration</label>
+        </div>
+      {/if}
+
+      <!-- Roster builder: Non-Standard OR Composite -->
+      {#if echelon === 'Battalion' && useRoster}
+        <div style="margin-bottom:10px;">
+          {#each rosterBatteries as b (b.id)}
+            <div style="display:grid;grid-template-columns:1fr 54px 24px;gap:5px;align-items:center;margin-bottom:5px;">
+              <select value={b.unitType}
+                on:change={e => updateBattery(b.id, 'unitType', e.target.value)}
+                style="font-size:12px;padding:4px 6px;">
+                <option>M109A7</option>
+                <option>M109A6</option>
+                <option>M777A2</option>
+                <option>M119A3</option>
+                <option>HIMARS</option>
+                <option>MLRS</option>
+              </select>
+              <input type="number" value={b.tubes} min="1" max="18"
+                on:input={e => updateBattery(b.id, 'tubes', parseInt(e.target.value) || 1)}
+                style="font-size:12px;padding:4px 6px;text-align:center;">
+              <button style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:14px;padding:0;line-height:1;"
+                on:click={() => removeBattery(b.id)}
+                title="Remove battery">×</button>
+            </div>
+          {/each}
+          <button class="btn btn-sm btn-outline" style="margin-top:4px;width:100%;" on:click={addBattery}>
+            + Add Battery
+          </button>
+        </div>
+
+        <div style="background:var(--bg-input);border:1px solid var(--od-dim);border-radius:5px;padding:10px;font-size:11px;line-height:1.9;margin-bottom:8px;">
+          <div style="color:var(--text-dim);font-weight:700;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.8px;">Roster: {rosterSummary}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;">
+            <span style="color:var(--text-dim);">Total Tubes</span><span style="color:var(--gold);font-family:'Share Tech',sans-serif;font-weight:700;">{rosterTotals.tubes}</span>
+            <span style="color:var(--text-dim);">PLS Trucks</span><span style="color:var(--gold);font-family:'Share Tech',sans-serif;font-weight:700;">{rosterTotals.trucks}</span>
+            <span style="color:var(--text-dim);">Trailers</span><span style="color:var(--gold);font-family:'Share Tech',sans-serif;font-weight:700;">{rosterTotals.trailers}</span>
+            {#if rosterTotals.cats > 0}
+              <span style="color:var(--text-dim);">CATs</span><span style="color:var(--gold);font-family:'Share Tech',sans-serif;font-weight:700;">{rosterTotals.cats}</span>
+            {/if}
+            {#if rosterTotals.hmmwvs > 0}
+              <span style="color:var(--text-dim);">HMMWVs</span><span style="color:var(--gold);font-family:'Share Tech',sans-serif;font-weight:700;">{rosterTotals.hmmwvs}</span>
+            {/if}
+          </div>
+        </div>
+        <div class="caption" style="margin-bottom:8px;">Vehicle counts use 1:1 tube ratio. Adjust manually below if needed.</div>
+      {/if}
+
+      <!-- Operational counts -->
       <div class="field">
         <label>
           {isM119 ? 'Operational Tubes' : 'Operational Tubes / Launchers'}
@@ -210,74 +320,6 @@
     {/if}
   </div>
 
-  <!-- 2. Battery Roster (Battalion only) -->
-  {#if echelon === 'Battalion'}
-  <div class="acc-section">
-    <div class="acc-header" class:open={open.roster} on:click={() => toggle('roster')}>
-      <span>Battery Roster {useRoster ? '●' : ''}</span><span class="acc-arrow">▼</span>
-    </div>
-    {#if open.roster}
-    <div class="acc-body">
-      <div class="toggle-row" style="margin-bottom:10px;">
-        <input type="checkbox" id="useRoster" bind:checked={useRoster}
-          on:change={() => { if (useRoster) syncRoster(); else onUnitTypeChange(); }}>
-        <label for="useRoster" style="color:var(--text-bright);font-weight:700;">Non-Standard Configuration</label>
-      </div>
-
-      {#if useRoster}
-        <!-- Battery rows -->
-        <div style="margin-bottom:10px;">
-          {#each rosterBatteries as b (b.id)}
-            <div style="display:grid;grid-template-columns:1fr 54px 24px;gap:5px;align-items:center;margin-bottom:5px;">
-              <select value={b.unitType}
-                on:change={e => updateBattery(b.id, 'unitType', e.target.value)}
-                style="font-size:12px;padding:4px 6px;">
-                <option>M109A7</option>
-                <option>M109A6</option>
-                <option>M777A2</option>
-                <option>M119A3</option>
-                <option>HIMARS</option>
-                <option>MLRS</option>
-              </select>
-              <input type="number" value={b.tubes} min="1" max="18"
-                on:input={e => updateBattery(b.id, 'tubes', parseInt(e.target.value) || 1)}
-                style="font-size:12px;padding:4px 6px;text-align:center;">
-              <button style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:14px;padding:0;line-height:1;"
-                on:click={() => removeBattery(b.id)}
-                title="Remove battery">×</button>
-            </div>
-          {/each}
-          <button class="btn btn-sm btn-outline" style="margin-top:4px;width:100%;" on:click={addBattery}>
-            + Add Battery
-          </button>
-        </div>
-
-        <!-- Computed summary -->
-        <div style="background:var(--bg-input);border:1px solid var(--od-dim);border-radius:5px;padding:10px;font-size:11px;line-height:1.9;">
-          <div style="color:var(--text-dim);font-weight:700;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.8px;">Roster: {rosterSummary}</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;">
-            <span style="color:var(--text-dim);">Total Tubes</span><span style="color:var(--gold);font-family:'Share Tech',sans-serif;font-weight:700;">{rosterTotals.tubes}</span>
-            <span style="color:var(--text-dim);">PLS Trucks</span><span style="color:var(--gold);font-family:'Share Tech',sans-serif;font-weight:700;">{rosterTotals.trucks}</span>
-            <span style="color:var(--text-dim);">Trailers</span><span style="color:var(--gold);font-family:'Share Tech',sans-serif;font-weight:700;">{rosterTotals.trailers}</span>
-            {#if rosterTotals.cats > 0}
-              <span style="color:var(--text-dim);">CATs</span><span style="color:var(--gold);font-family:'Share Tech',sans-serif;font-weight:700;">{rosterTotals.cats}</span>
-            {/if}
-            {#if rosterTotals.hmmwvs > 0}
-              <span style="color:var(--text-dim);">HMMWVs</span><span style="color:var(--gold);font-family:'Share Tech',sans-serif;font-weight:700;">{rosterTotals.hmmwvs}</span>
-            {/if}
-          </div>
-        </div>
-        <div class="caption" style="margin-top:6px;">Vehicle counts use 1:1 tube ratio. Adjust manually in Echelon &amp; Unit above if needed.</div>
-      {:else}
-        <div style="font-size:12px;color:var(--text-dim);line-height:1.6;">
-          Enable to configure a non-standard battalion — e.g. mixed M777A2 / M119A3, or more than 3 batteries. Vehicle totals are auto-computed from the roster.
-        </div>
-      {/if}
-    </div>
-    {/if}
-  </div>
-  {/if}
-
   <!-- 3. Load Config (cannon only) -->
   {#if isCannon && !isM119}
   <div class="acc-section">
@@ -317,38 +359,7 @@
     {/if}
   </div>
 
-  <!-- 5. CSR Management -->
-  <div class="acc-section">
-    <div class="acc-header" class:open={open.csr} on:click={() => toggle('csr')}>
-      <span>CSR Management</span><span class="acc-arrow">▼</span>
-    </div>
-    {#if open.csr}
-    <div class="acc-body">
-      <div class="radio-group">
-        <label><input type="radio" name="csrMode" value="general"  bind:group={csrMode}> General Limit</label>
-        <label><input type="radio" name="csrMode" value="byRound"  bind:group={csrMode}> By Round Type</label>
-      </div>
-      {#if csrMode === 'general'}
-        <div class="field">
-          <label>General CSR ({echelon})</label>
-          <input type="number" bind:value={generalCsr} min="0">
-        </div>
-      {:else}
-        <div id="byRoundCsrSection">
-          {#each munKeys as k}
-            <div class="csr-item">
-              <label>{k} CSR</label>
-              <input type="number" value={csrByRound[k] ?? 100} min="0"
-                on:input={e => handleCsrByRound(k, e.target.value)}>
-            </div>
-          {/each}
-        </div>
-      {/if}
-    </div>
-    {/if}
-  </div>
-
-  <!-- 6. Sustainment -->
+  <!-- 5. Sustainment -->
   <div class="acc-section">
     <div class="acc-header" class:open={open.sustain} on:click={() => toggle('sustain')}>
       <span>Sustainment &amp; Routes</span><span class="acc-arrow">▼</span>

@@ -11,12 +11,13 @@
   import TabDodic from './components/TabDodic.svelte';
   import TabEfc from './components/TabEfc.svelte';
   import TabExport from './components/TabExport.svelte';
-  import TabGapCrossing from './components/TabGapCrossing.svelte';
+  import TabTaskOrg from './components/TabTaskOrg.svelte';
 
   // — Config state (sidebar inputs) —
-  let echelon    = 'Battalion';
-  let unitType   = 'M109A7';
-  let tubes      = 18;
+  let echelon      = 'Battalion';
+  let unitType     = 'M109A7';
+  let unitCategory = 'Cannon (SP)';
+  let tubes        = 18;
   let truckQty   = 24;
   let trailQty   = 24;
   let catQty     = 18;
@@ -24,8 +25,6 @@
   let cclMode    = false;
   let planMode   = 'manual';
   let loadPct    = 25;
-  let csrMode    = 'general';
-  let generalCsr = 60;
   let dist       = 25;
   let speed      = 30;
   let loadTime   = 2.0;
@@ -36,6 +35,14 @@
   let paaBsa     = 2000;
   let dudRate    = 2;
   let reloadTime = 15;
+
+  // — Battery Roster state —
+  let useRoster = false;
+  let rosterBatteries = [
+    { id: 1, unitType: 'M109A7', tubes: 6 },
+    { id: 2, unitType: 'M109A7', tubes: 6 },
+    { id: 3, unitType: 'M109A7', tubes: 6 },
+  ];
 
   // — RSR / CSR state —
   let rsrValues       = {};
@@ -55,20 +62,44 @@
   $: isM119   = unitType === 'M119A3';
 
   $: config = {
-    echelon, unitType, isCannon, isM109, isMlrs, isM119,
+    echelon, unitType, unitCategory, isCannon, isM109, isMlrs, isM119,
     tubes,
     truckQty: isM119 ? 0 : truckQty,
     trailQty: isM119 ? 0 : trailQty,
     catQty: isM109 ? catQty : 0,
     hmmwvQty: isM119 ? hmmwvQty : 0,
     cclMode: (isCannon && !isM119) && cclMode,
-    planMode, loadPct, csrMode, generalCsr,
+    planMode, loadPct,
     dist, speed, loadTime, planHours, authCsr,
     firingRate, paaGunLine, paaBsa, dudRate, reloadTime,
     customMunitions,
+    useRoster, rosterBatteries,
   };
 
-  $: computed = computeValues(config, rsrValues, autoSync);
+  // — Composite groups: unique systems + tube counts from roster —
+  function getCompositeGroups(batteries) {
+    const groups = {};
+    for (const b of batteries) {
+      if (!groups[b.unitType]) groups[b.unitType] = { unitType: b.unitType, tubes: 0 };
+      groups[b.unitType].tubes += b.tubes;
+    }
+    return Object.values(groups);
+  }
+  $: compositeGroups = (unitCategory === 'Composite' && useRoster)
+    ? getCompositeGroups(rosterBatteries)
+    : [];
+
+  // For compute.js: flatten compound keys ("M109A7||key") → simple keys by summing
+  $: flatRsrValues = unitCategory !== 'Composite' ? rsrValues : (() => {
+    const flat = {};
+    for (const [k, val] of Object.entries(rsrValues)) {
+      const munKey = k.includes('||') ? k.split('||')[1] : k;
+      flat[munKey] = (flat[munKey] || 0) + val;
+    }
+    return flat;
+  })();
+
+  $: computed = computeValues(config, flatRsrValues, autoSync);
 
   $: baseKeys = isM119
     ? Object.keys(MUNITION_105)
@@ -76,7 +107,18 @@
       ? Object.keys(MUNITION_155)
       : Object.keys(MUNITION_ROCKETS);
 
-  $: munKeys = [...baseKeys, ...customMunitions.map(m => m.name)];
+  // For Composite: compound keys per system; otherwise flat keys
+  function munKeysForType(ut) {
+    if (ut === 'M119A3') return Object.keys(MUNITION_105);
+    if (ut.includes('M109') || ut.includes('M777')) return Object.keys(MUNITION_155);
+    return Object.keys(MUNITION_ROCKETS);
+  }
+  $: munKeys = unitCategory === 'Composite' && compositeGroups.length > 0
+    ? [
+        ...compositeGroups.flatMap(g => munKeysForType(g.unitType).map(k => `${g.unitType}||${k}`)),
+        ...customMunitions.map(m => m.name),
+      ]
+    : [...baseKeys, ...customMunitions.map(m => m.name)];
 
   // Reset RSR/CSR when unit type changes
   $: {
@@ -106,6 +148,10 @@
     rsrValues = rest;
   }
 
+  function handleRosterChange(e) {
+    rosterBatteries = e.detail;
+  }
+
   function setActiveTab(n) {
     activeTab = n;
   }
@@ -120,17 +166,17 @@
   <div class="sidebar">
     <button class="menu-btn" on:click={() => sidebarOpen = !sidebarOpen}>☰ Unit/Echelon</button>
     <Sidebar
-      bind:echelon bind:unitType bind:tubes
+      bind:echelon bind:unitType bind:unitCategory bind:tubes
       bind:truckQty bind:trailQty bind:catQty bind:hmmwvQty
+      bind:useRoster {rosterBatteries}
+      on:rosterchange={handleRosterChange}
       bind:cclMode bind:planMode bind:loadPct
-      bind:csrMode bind:generalCsr
       bind:dist bind:speed bind:loadTime bind:planHours
       bind:authCsr bind:firingRate
       bind:paaGunLine bind:paaBsa
       bind:dudRate bind:reloadTime
-      {config} {munKeys} {csrByRound}
+      {config}
       {sidebarOpen}
-      on:csrbyround={handleCsrByRoundChange}
     />
   </div>
 
@@ -141,11 +187,11 @@
       <!-- Two-tier tab bar (no page header) -->
       <div class="tabs-wrap">
         <div class="tabs-primary">
+          <button class="tab" class:active={activeTab===8}  on:click={() => setActiveTab(8)}>🗂 Task Org</button>
           <button class="tab" class:active={activeTab===1}  on:click={() => setActiveTab(1)}>📊 Logistics</button>
           <button class="tab" class:active={activeTab===2}  on:click={() => setActiveTab(2)}>🎯 Fire Missions</button>
           <button class="tab" class:active={activeTab===3}  on:click={() => setActiveTab(3)}>📅 DOS &amp; Resupply</button>
           <button class="tab" class:active={activeTab===4}  on:click={() => setActiveTab(4)}>💰 Training Cost</button>
-          <button class="tab" class:active={activeTab===10} on:click={() => setActiveTab(10)}>🌉 Gap Crossing</button>
         </div>
         <div class="tabs-secondary">
           <span class="tabs-ref-label">Tools &amp; Ref</span>
@@ -159,7 +205,7 @@
       <div class="tab-content" style="overflow-y:auto;flex:1;">
         {#if activeTab === 1}
           <TabLogistics
-            {config} {computed} {rsrValues} {csrByRound} {autoSync} {munKeys}
+            {config} {computed} {rsrValues} {csrByRound} {autoSync} {munKeys} {compositeGroups}
             on:rsrchange={handleRsrChange}
             on:autosyncchange={e => autoSync = e.detail}
             on:csrbyround={handleCsrByRoundChange}
@@ -180,8 +226,8 @@
           <TabEfc {config} />
         {:else if activeTab === 9}
           <TabExport {config} {computed} {rsrValues} {csrByRound} />
-        {:else if activeTab === 10}
-          <TabGapCrossing {config} />
+        {:else if activeTab === 8}
+          <TabTaskOrg {config} />
         {/if}
       </div>
     </div>

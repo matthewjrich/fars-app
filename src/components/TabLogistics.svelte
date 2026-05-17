@@ -1,6 +1,7 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import { MUNITION_155, MUNITION_ROCKETS, MUNITION_105, VEH_COSTS } from '../lib/data.js';
+  import { MUNITION_155, MUNITION_ROCKETS, MUNITION_105, VEH_COSTS, MLC_DATA } from '../lib/data.js';
+  import { getMlcVehiclesForUnit } from '../lib/compute.js';
   import { fmt, fmtD, fmtCurrency, gaugeColor } from '../lib/utils.js';
 
   export let config;
@@ -9,6 +10,7 @@
   export let csrByRound = {};
   export let autoSync = true;
   export let munKeys = [];
+  export let compositeGroups = [];
 
   const dispatch = createEventDispatcher();
 
@@ -19,23 +21,30 @@
   $: pct = Math.min(c.spatialUtil, 100);
   $: fillColor = gaugeColor(pct);
 
+  // Resolve tube count for a munition key (handles Composite compound keys)
+  function tubesForKey(k) {
+    if (v.unitCategory === 'Composite' && k.includes('||')) {
+      const sys = k.split('||')[0];
+      return (compositeGroups.find(g => g.unitType === sys) || {}).tubes || v.tubes;
+    }
+    return v.tubes;
+  }
+
   $: csrAlertHtml = buildCsrAlert();
   function buildCsrAlert() {
-    if (c.currentTotalRsr > v.generalCsr && v.csrMode === 'general') {
-      return `<div class="alert alert-error">⚠️ CSR VIOLATION: ${v.echelon} RSR (${fmtD(c.currentTotalRsr)}) exceeds General CSR (${v.generalCsr})</div>`;
-    } else if (v.planMode === 'manual' && v.csrMode === 'byRound') {
-      let viol = false, ah = '';
-      for (const k of munKeys) {
-        const limit = csrByRound[k] ?? 100;
-        if ((rsrValues[k] || 0) / (v.tubes || 1) > limit) {
-          ah += `<div class="alert alert-error">⚠️ CSR VIOLATION: ${k}</div>`;
-          viol = true;
-        }
-      }
-      if (!viol) ah = `<div class="alert alert-success">✅ ${v.echelon} RSR within authorized limits.</div>`;
-      return ah;
-    }
-    return `<div class="alert alert-success">✅ ${v.echelon} RSR (${fmtD(c.currentTotalRsr)}) within authorized limits.</div>`;
+    if (v.planMode !== 'manual') return '';
+    const setCsrs = munKeys.filter(k => (csrByRound[k] || 0) > 0);
+    if (setCsrs.length === 0) return '';
+    const violations = setCsrs
+      .filter(k => (rsrValues[k] || 0) > (csrByRound[k] || 0) * tubesForKey(k))
+      .map(k => {
+        const tubes = tubesForKey(k);
+        const auth  = ((csrByRound[k] || 0) * tubes).toLocaleString();
+        const label = k.includes('||') ? k.split('||')[1] : k;
+        return `<div class="alert alert-error">⚠️ CSR VIOLATION: ${label} — RSR ${(rsrValues[k]||0).toLocaleString()} exceeds auth ${auth}</div>`;
+      });
+    if (violations.length) return violations.join('');
+    return `<div class="alert alert-success">✅ ${v.echelon} RSR within all CSR limits.</div>`;
   }
 
   $: expanderBodyHtml = buildExpanderBody();
@@ -63,29 +72,26 @@
     return html;
   }
 
-  // RSR input columns
-  $: rsrCols = buildRsrCols();
-  function buildRsrCols() {
-    if (v.isM119) {
-      return [
-        { title: 'HE & RAP',      keys: Object.keys(MUNITION_105).slice(0,3) },
-        { title: 'Specialty',     keys: Object.keys(MUNITION_105).slice(3,6) },
-        { title: 'Support Items', keys: Object.keys(MUNITION_105).slice(6) },
-      ];
-    } else if (v.isCannon) {
-      return [
-        { title: 'HE & RAP',      keys: Object.keys(MUNITION_155).slice(0,4) },
-        { title: 'Specialty',     keys: Object.keys(MUNITION_155).slice(4,11) },
-        { title: 'Support Items', keys: Object.keys(MUNITION_155).slice(11) },
-      ];
-    } else {
-      return [
-        { title: 'Rockets',  keys: Object.keys(MUNITION_ROCKETS).slice(0,7) },
-        { title: 'ATACMS',   keys: Object.keys(MUNITION_ROCKETS).slice(7,12) },
-        { title: 'PrSM',     keys: Object.keys(MUNITION_ROCKETS).slice(12) },
-      ];
-    }
+  // RSR columns for a given system type
+  function buildRsrColsForType(ut) {
+    if (ut === 'M119A3') return [
+      { title: 'HE & RAP',      keys: Object.keys(MUNITION_105).slice(0,3) },
+      { title: 'Specialty',     keys: Object.keys(MUNITION_105).slice(3,6) },
+      { title: 'Support Items', keys: Object.keys(MUNITION_105).slice(6) },
+    ];
+    if (ut.includes('M109') || ut.includes('M777')) return [
+      { title: 'HE & RAP',      keys: Object.keys(MUNITION_155).slice(0,4) },
+      { title: 'Specialty',     keys: Object.keys(MUNITION_155).slice(4,11) },
+      { title: 'Support Items', keys: Object.keys(MUNITION_155).slice(11) },
+    ];
+    return [
+      { title: 'Rockets',  keys: Object.keys(MUNITION_ROCKETS).slice(0,7) },
+      { title: 'ATACMS',   keys: Object.keys(MUNITION_ROCKETS).slice(7,12) },
+      { title: 'PrSM',     keys: Object.keys(MUNITION_ROCKETS).slice(12) },
+    ];
   }
+
+  $: rsrCols = buildRsrColsForType(v.unitType);
 
   function onRsrInput(k, val) {
     dispatch('rsrchange', { key: k, value: parseInt(val) || 0 });
@@ -95,11 +101,12 @@
     dispatch('csrbyround', { key: k, value: parseFloat(val) || 0 });
   }
 
-  // Per-round comparison: RSR total vs. CSR × tubes
-  function rsrVsCsr(k) {
-    const rsr  = rsrValues[k] || 0;
-    const csr  = csrByRound[k] || 0;
-    const auth = csr * (v.tubes || 1);
+  // Per-round comparison: RSR total vs. CSR × tubes (tube count overridable for Composite)
+  function rsrVsCsr(k, tubeOverride) {
+    const rsr   = rsrValues[k] || 0;
+    const csr   = csrByRound[k] || 0;
+    const tubes = tubeOverride != null ? tubeOverride : (v.tubes || 1);
+    const auth  = csr * tubes;
     return { rsr, csr, auth, set: csr > 0, exceeds: csr > 0 && rsr > auth };
   }
 
@@ -121,9 +128,45 @@
   }
 
   $: customMuns = (v.customMunitions || []);
+
+  // ── Column MLC ──
+  function buildMlcVehicles(cfg, groups) {
+    if (cfg.unitCategory === 'Composite' && groups.length > 0) {
+      const vehicles = [];
+      for (const grp of groups) {
+        const ut = grp.unitType;
+        if      (ut === 'M109A7') vehicles.push({ name: 'M109A7 Paladin',    qty: grp.tubes, role: 'Gun System' });
+        else if (ut === 'M109A6') vehicles.push({ name: 'M109A6 Paladin',    qty: grp.tubes, role: 'Gun System' });
+        else if (ut === 'M777A2') vehicles.push({ name: 'M777A2 w/LMTV',     qty: grp.tubes, role: 'Gun System' });
+        else if (ut === 'M119A3') vehicles.push({ name: 'M119A3 w/HMMWV',    qty: grp.tubes, role: 'Gun System' });
+        else if (ut === 'HIMARS') vehicles.push({ name: 'M142 HIMARS',        qty: grp.tubes, role: 'Launcher'   });
+        else if (ut === 'MLRS')   vehicles.push({ name: 'M270A2 MLRS',        qty: grp.tubes, role: 'Launcher'   });
+      }
+      if (cfg.catQty  > 0) vehicles.push({ name: 'M992A3 CAT (FAASV)',    qty: cfg.catQty,   role: 'Ammo Carrier' });
+      if (cfg.truckQty > 0) vehicles.push({ name: 'M1075A1 PLS (loaded)', qty: cfg.truckQty, role: 'Ammo Truck'   });
+      if (cfg.trailQty > 0) vehicles.push({ name: 'M1076 Trailer (loaded)', qty: cfg.trailQty, role: 'Ammo Trailer' });
+      if (cfg.hmmwvQty > 0) vehicles.push({ name: 'M1097 HMMWV',          qty: cfg.hmmwvQty, role: 'Ammo HMMWV'  });
+      return vehicles;
+    }
+    return getMlcVehiclesForUnit(cfg);
+  }
+
+  $: mlcVehicles = buildMlcVehicles(v, compositeGroups);
+  $: mlcRows = mlcVehicles.map(uv => {
+    const d = MLC_DATA[uv.name];
+    if (!d) return { ...uv, mlcW: '?', mlcT: '?', type: '?' };
+    return { ...uv, mlcW: d.w ?? '—', mlcT: d.t ?? '—', type: d.type };
+  });
+  $: columnMlcW = mlcRows.reduce((m, r) => (typeof r.mlcW === 'number' && r.mlcW > m ? r.mlcW : m), 0);
+  $: columnMlcT = mlcRows.reduce((m, r) => (typeof r.mlcT === 'number' && r.mlcT > m ? r.mlcT : m), 0);
+  $: limitingW = columnMlcW > 0 ? mlcRows.find(r => r.mlcW === columnMlcW) : null;
+  $: limitingT = columnMlcT > 0 ? mlcRows.find(r => r.mlcT === columnMlcT) : null;
 </script>
 
-<div class="section-title" style="margin-top:8px">{v.echelon} Organic Haul Capacity</div>
+<div class="section-title" style="margin-top:8px">
+  {v.echelon} Organic Haul Capacity
+  {#if v.unitCategory === 'Composite'}<span style="font-weight:400;color:var(--text-dim);font-size:11px;"> — aggregate from roster</span>{/if}
+</div>
 <div class="metric-grid">
   <div class="metric-card"><div class="metric-label">Total Weight (Lbs)</div><div class="metric-value">{fmt(c.haulLbs)}</div></div>
   <div class="metric-card"><div class="metric-label">Total Weight (STONS)</div><div class="metric-value">{fmtD(c.haulStons)}</div></div>
@@ -168,55 +211,109 @@
 <hr>
 
 {#if v.planMode === 'manual'}
-  <div class="section-title" style="margin-top:8px">
-    RSR Input — {v.isM119 ? '105mm Munitions' : v.isCannon ? '155mm Munitions' : 'Rockets & Missiles'}
-  </div>
-  <div class="rsr-grid">
-    {#each rsrCols as col}
-      <div class="rsr-col">
-        <h3>{col.title}</h3>
-        <div class="rsr-csr-inputs" style="margin-bottom:6px;border-bottom:1px solid var(--border);padding-bottom:5px;">
-          <div class="rsr-col-hdr">RSR — Required Supply Rate<br><span style="color:var(--gold);font-size:9px;">Total rounds requested</span></div>
-          <div class="rsr-col-hdr" style="color:var(--od-bright);">CSR — Controlled Supply Rate<br><span style="color:var(--gold);font-size:9px;">Rds / system / day (HQ auth)</span></div>
-        </div>
-        {#each col.keys as k}
-          {@const cmp = rsrVsCsr(k)}
-          <div class="rsr-item">
-            <div class="rsr-item-hdr">
-              <label style="margin:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title={k}>{k}</label>
-              {#if cmp.set}
-                <span class="csr-badge {cmp.exceeds ? 'csr-exceed' : 'csr-ok'}">
-                  {cmp.exceeds ? '⚠ EXCEEDS' : '✓ AUTH'}
-                </span>
-              {/if}
+
+  {#if v.unitCategory === 'Composite' && compositeGroups.length > 0}
+    <!-- ── Composite: one RSR section per system ── -->
+    {#each compositeGroups as grp}
+      {@const grpCols = buildRsrColsForType(grp.unitType)}
+      {@const grpIsM109 = grp.unitType.includes('M109')}
+      {@const grpIsCannon = grp.unitType.includes('M109') || grp.unitType.includes('M777')}
+      <div class="section-title" style="margin-top:12px">
+        RSR — {grp.unitType} &nbsp;<span style="font-weight:400;color:var(--text-dim);">({grp.tubes} tubes)</span>
+      </div>
+      <div class="rsr-grid">
+        {#each grpCols as col}
+          <div class="rsr-col">
+            <h3>{col.title}</h3>
+            <div class="rsr-csr-inputs" style="margin-bottom:6px;border-bottom:1px solid var(--border);padding-bottom:5px;">
+              <div class="rsr-col-hdr">RSR — Required Supply Rate<br><span style="color:var(--gold);font-size:9px;">Total rounds requested</span></div>
+              <div class="rsr-col-hdr" style="color:var(--od-bright);">CSR — Controlled Supply Rate<br><span style="color:var(--gold);font-size:9px;">Rds / system / day (HQ auth)</span></div>
             </div>
-            <div class="rsr-csr-inputs">
-              <input type="number" class="rsr-input" value={cmp.rsr} min="0"
-                on:input={e => onRsrInput(k, e.target.value)}>
-              <input type="number" class="rsr-input csr-input" value={cmp.csr || ''} min="0"
-                placeholder="—" title="CSR: rounds per system per day"
-                on:input={e => onCsrInput(k, e.target.value)}>
-            </div>
-            {#if cmp.set}
-              <div class="csr-auth-line">
-                Auth: {cmp.auth.toLocaleString()} rds &nbsp;({cmp.csr} × {v.tubes} sys)
-                {#if cmp.exceeds}
-                  &nbsp;· <span style="color:#ffa198;">+{(cmp.rsr - cmp.auth).toLocaleString()} over</span>
+            {#each col.keys as rawKey}
+              {@const k = `${grp.unitType}||${rawKey}`}
+              {@const cmp = rsrVsCsr(k, grp.tubes)}
+              <div class="rsr-item">
+                <div class="rsr-item-hdr">
+                  <label style="margin:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title={rawKey}>{rawKey}</label>
+                  {#if cmp.set}
+                    <span class="csr-badge {cmp.exceeds ? 'csr-exceed' : 'csr-ok'}">{cmp.exceeds ? '⚠ EXCEEDS' : '✓ AUTH'}</span>
+                  {/if}
+                </div>
+                <div class="rsr-csr-inputs">
+                  <input type="number" class="rsr-input" value={cmp.rsr} min="0"
+                    on:input={e => onRsrInput(k, e.target.value)}>
+                  <input type="number" class="rsr-input csr-input" value={cmp.csr || ''} min="0" step="0.1"
+                    placeholder="—" title="CSR: rounds per system per day"
+                    on:input={e => onCsrInput(k, e.target.value)}>
+                </div>
+                {#if cmp.set}
+                  <div class="csr-auth-line">
+                    Auth: {cmp.auth.toLocaleString()} rds &nbsp;({cmp.csr} × {grp.tubes} sys)
+                    {#if cmp.exceeds}&nbsp;· <span style="color:#ffa198;">+{(cmp.rsr - cmp.auth).toLocaleString()} over</span>{/if}
+                  </div>
                 {/if}
+              </div>
+            {/each}
+            {#if col.title === 'Support Items' && grpIsCannon && !grp.unitType.includes('M119')}
+              <div class="toggle-row" style="margin-top:10px">
+                <input type="checkbox" id="autoSync_{grp.unitType}" checked={autoSync}
+                  on:change={e => dispatch('autosyncchange', e.target.checked)}>
+                <label for="autoSync_{grp.unitType}">Auto-Sync Support Items</label>
               </div>
             {/if}
           </div>
         {/each}
-        {#if col.title === 'Support Items' && v.isCannon && !v.isM119}
-          <div class="toggle-row" style="margin-top:10px">
-            <input type="checkbox" id="autoSync" checked={autoSync}
-              on:change={e => dispatch('autosyncchange', e.target.checked)}>
-            <label for="autoSync">Auto-Sync Support Items</label>
-          </div>
-        {/if}
       </div>
     {/each}
-  </div>
+
+  {:else}
+    <!-- ── Standard single-system RSR ── -->
+    <div class="section-title" style="margin-top:8px">
+      RSR Input — {v.isM119 ? '105mm Munitions' : v.isCannon ? '155mm Munitions' : 'Rockets & Missiles'}
+    </div>
+    <div class="rsr-grid">
+      {#each rsrCols as col}
+        <div class="rsr-col">
+          <h3>{col.title}</h3>
+          <div class="rsr-csr-inputs" style="margin-bottom:6px;border-bottom:1px solid var(--border);padding-bottom:5px;">
+            <div class="rsr-col-hdr">RSR — Required Supply Rate<br><span style="color:var(--gold);font-size:9px;">Total rounds requested</span></div>
+            <div class="rsr-col-hdr" style="color:var(--od-bright);">CSR — Controlled Supply Rate<br><span style="color:var(--gold);font-size:9px;">Rds / system / day (HQ auth)</span></div>
+          </div>
+          {#each col.keys as k}
+            {@const cmp = rsrVsCsr(k)}
+            <div class="rsr-item">
+              <div class="rsr-item-hdr">
+                <label style="margin:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title={k}>{k}</label>
+                {#if cmp.set}
+                  <span class="csr-badge {cmp.exceeds ? 'csr-exceed' : 'csr-ok'}">{cmp.exceeds ? '⚠ EXCEEDS' : '✓ AUTH'}</span>
+                {/if}
+              </div>
+              <div class="rsr-csr-inputs">
+                <input type="number" class="rsr-input" value={cmp.rsr} min="0"
+                  on:input={e => onRsrInput(k, e.target.value)}>
+                <input type="number" class="rsr-input csr-input" value={cmp.csr || ''} min="0" step="0.1"
+                  placeholder="—" title="CSR: rounds per system per day"
+                  on:input={e => onCsrInput(k, e.target.value)}>
+              </div>
+              {#if cmp.set}
+                <div class="csr-auth-line">
+                  Auth: {cmp.auth.toLocaleString()} rds &nbsp;({cmp.csr} × {v.tubes} sys)
+                  {#if cmp.exceeds}&nbsp;· <span style="color:#ffa198;">+{(cmp.rsr - cmp.auth).toLocaleString()} over</span>{/if}
+                </div>
+              {/if}
+            </div>
+          {/each}
+          {#if col.title === 'Support Items' && v.isCannon && !v.isM119}
+            <div class="toggle-row" style="margin-top:10px">
+              <input type="checkbox" id="autoSync" checked={autoSync}
+                on:change={e => dispatch('autosyncchange', e.target.checked)}>
+              <label for="autoSync">Auto-Sync Support Items</label>
+            </div>
+          {/if}
+        </div>
+      {/each}
+    </div>
+  {/if}
 
   <!-- Custom Ammunition -->
   <div class="section-title" style="margin-top:4px">Custom / Non-Standard Ammunition</div>
@@ -276,4 +373,49 @@
       + Add Custom Ammo
     </button>
   {/if}
+{/if}
+
+<!-- ── Column MLC Assessment ── -->
+<hr style="margin-top:20px;margin-bottom:16px;">
+<div class="section-title">Column MLC Assessment</div>
+<p style="font-size:12px;color:var(--text-dim);margin-bottom:12px;">
+  Per FM 5-170 / NATO STANAG 2021. Column MLC equals the highest vehicle classification in the formation — bridges must meet or exceed this rating to cross.
+</p>
+
+{#if mlcVehicles.length > 0}
+  <div class="metric-grid" style="margin-bottom:12px;">
+    <div class="metric-card {columnMlcW >= 30 ? 'warn' : ''}">
+      <div class="metric-label">Column MLC (Wheeled)</div>
+      <div class="metric-value">{columnMlcW > 0 ? columnMlcW : '—'}</div>
+      {#if limitingW}<div class="metric-sub">Limited by: {limitingW.name}</div>{/if}
+    </div>
+    <div class="metric-card {columnMlcT >= 45 ? 'warn' : ''}">
+      <div class="metric-label">Column MLC (Tracked)</div>
+      <div class="metric-value">{columnMlcT > 0 ? columnMlcT : '—'}</div>
+      {#if limitingT}<div class="metric-sub">Limited by: {limitingT.name}</div>{/if}
+    </div>
+  </div>
+
+  <table class="data-table" style="margin-bottom:12px;">
+    <thead>
+      <tr><th>Vehicle</th><th>Role</th><th>Qty</th><th>MLC (W)</th><th>MLC (T)</th><th>Type</th></tr>
+    </thead>
+    <tbody>
+      {#each mlcRows as row}
+        <tr>
+          <td style="font-size:12px;">{row.name}</td>
+          <td style="font-size:11px;color:var(--text-dim);">{row.role}</td>
+          <td>{row.qty}</td>
+          <td style="color:var(--gold);">{row.mlcW}</td>
+          <td style="color:var(--gold);">{row.mlcT}</td>
+          <td style="font-size:11px;color:var(--text-dim);">{row.type ?? '—'}</td>
+        </tr>
+      {/each}
+    </tbody>
+  </table>
+  <div style="font-size:11px;color:var(--text-dim);">
+    W = Wheeled classification, T = Tracked. Verify against current engineer bridge data and vehicle TMs for exact combat-loaded weights.
+  </div>
+{:else}
+  <div class="alert alert-info">Configure your unit in the sidebar to see MLC assessment.</div>
 {/if}
