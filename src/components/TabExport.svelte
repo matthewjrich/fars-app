@@ -9,18 +9,22 @@
   $: v = config;
   $: c = computed;
 
-  $: logstatText = buildLogstat();
+  let unitDesig = '';
 
-  function buildLogstat() {
+  $: logstatText = buildLogstat(unitDesig);
+
+  function buildLogstat(desig) {
     const d = new Date();
     const dateStr = d.toISOString().slice(0, 10);
+    const unitLabel = desig || `${v.echelon} ${v.unitType}`;
     const lines = [
       `═══════════════════════════════════════════════════════`,
-      `LOGSTAT — ${v.echelon} ${v.unitType}`,
+      `LOGSTAT — ${unitLabel}`,
       `Generated: ${dateStr} | FARS Field Artillery Resource Sync`,
       `═══════════════════════════════════════════════════════`,
       ``,
       `UNIT STATUS:`,
+      `  Unit:       ${unitLabel}`,
       `  System:     ${v.unitType} (${v.echelon})`,
       `  Tubes/Lnch: ${v.tubes}`,
       `  Config:     ${v.isCannon ? (v.cclMode ? 'CCL (144 rds/flatrack)' : 'Loose (160 rds/flatrack)') : 'Rocket/Pod'}`,
@@ -105,6 +109,11 @@
 
 <div class="section-title">Export / LOGSTAT</div>
 <p style="font-size:13px;color:var(--text-dim);margin-bottom:16px;">Generate a plain-text LOGSTAT for briefings or copy to clipboard. Download as CSV for spreadsheet use.</p>
+
+<div class="field" style="max-width:360px;margin-bottom:16px;">
+  <label>Unit Designation <span style="color:var(--text-dim);font-weight:400;">(optional — overrides auto-generated header)</span></label>
+  <input type="text" bind:value={unitDesig} placeholder="e.g. 1-15 FA, A/1-15 FA, 3rd PLT B/1-15 FA">
+</div>
 
 <div style="display:flex;gap:10px;margin-bottom:16px;">
   <button class="btn" on:click={copyLogstat}>📋 Copy LOGSTAT</button>

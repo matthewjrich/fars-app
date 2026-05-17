@@ -2,10 +2,14 @@
   import { VEH_COSTS, POL_ITEMS, MRE_COST, UGR_COST, JD_COST, WATER_CASE_COST, CL2_FACTOR, CL8_FACTOR, CL4_WIRE_COST, CL4_CONC_COST, JP8_PER_GAL, DSL_PER_GAL } from '../lib/data.js';
   import { fmt, fmtD, fmtCurrency } from '../lib/utils.js';
 
+  export let config;
+
+  const ECHELON_PAX = { Battalion: 400, Battery: 120, Platoon: 35 };
+
   // Event info
   let evtUnit  = '';
   let evtName  = '';
-  let evtPax   = 181;
+  let evtPax   = ECHELON_PAX[config?.echelon] ?? 181;
   let evtStart = '';
   let evtEnd   = '';
   let evtDays  = 10;
@@ -85,7 +89,7 @@
     if (!confirm('Reset all training cost data? This cannot be undone.')) return;
     evtUnit  = '';
     evtName  = '';
-    evtPax   = 181;
+    evtPax   = ECHELON_PAX[config?.echelon] ?? 181;
     evtStart = '';
     evtEnd   = '';
     evtDays  = 10;
@@ -136,7 +140,11 @@
 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
   <div class="field"><label>Unit</label><input type="text" bind:value={evtUnit} placeholder="e.g. 1-15 FA"></div>
   <div class="field"><label>Event Name</label><input type="text" bind:value={evtName} placeholder="e.g. EFMB, XCTC"></div>
-  <div class="field"><label>PAX</label><input type="number" bind:value={evtPax} min="1"></div>
+  <div class="field">
+    <label>PAX</label>
+    <input type="number" bind:value={evtPax} min="1">
+    <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">Default for {config?.echelon || 'Battalion'}: ~{ECHELON_PAX[config?.echelon] ?? 400}</div>
+  </div>
   <div class="field"><label>Start Date</label><input type="date" bind:value={evtStart}></div>
   <div class="field"><label>End Date</label><input type="date" bind:value={evtEnd}></div>
   <div class="field"><label>Event Days</label><input type="number" bind:value={evtDays} min="1"></div>

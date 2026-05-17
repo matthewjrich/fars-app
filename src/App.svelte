@@ -12,6 +12,7 @@
   import TabEfc from './components/TabEfc.svelte';
   import TabExport from './components/TabExport.svelte';
   import TabTaskOrg from './components/TabTaskOrg.svelte';
+  import TabReadiness from './components/TabReadiness.svelte';
 
   // — Config state (sidebar inputs) —
   let echelon      = 'Battalion';
@@ -51,7 +52,7 @@
   let customMunitions = []; // [{name, wt}] — user-defined rounds
 
   // — UI state —
-  let activeTab  = 1;
+  let activeTab  = 2;
   let bannerOpen = false;
   let sidebarOpen = false;
 
@@ -187,23 +188,26 @@
       <!-- Two-tier tab bar (no page header) -->
       <div class="tabs-wrap">
         <div class="tabs-primary">
-          <button class="tab" class:active={activeTab===8}  on:click={() => setActiveTab(8)}>🗂 Task Org</button>
-          <button class="tab" class:active={activeTab===1}  on:click={() => setActiveTab(1)}>📊 Logistics</button>
-          <button class="tab" class:active={activeTab===2}  on:click={() => setActiveTab(2)}>🎯 Fire Missions</button>
+          <button class="tab" class:active={activeTab===1}  on:click={() => setActiveTab(1)}>🗂 Task Org</button>
+          <button class="tab" class:active={activeTab===2}  on:click={() => setActiveTab(2)}>📊 Logistics</button>
           <button class="tab" class:active={activeTab===3}  on:click={() => setActiveTab(3)}>📅 DOS &amp; Resupply</button>
-          <button class="tab" class:active={activeTab===4}  on:click={() => setActiveTab(4)}>💰 Training Cost</button>
+          <button class="tab" class:active={activeTab===4}  on:click={() => setActiveTab(4)}>🎯 Fire Missions</button>
+          <button class="tab" class:active={activeTab===5}  on:click={() => setActiveTab(5)}>🛡 PAA &amp; Storage</button>
+          <button class="tab" class:active={activeTab===6}  on:click={() => setActiveTab(6)}>📋 Readiness</button>
         </div>
         <div class="tabs-secondary">
           <span class="tabs-ref-label">Tools &amp; Ref</span>
-          <button class="tab" class:active={activeTab===5}  on:click={() => setActiveTab(5)}>PAA &amp; Storage</button>
-          <button class="tab" class:active={activeTab===6}  on:click={() => setActiveTab(6)}>DODIC</button>
-          <button class="tab" class:active={activeTab===7}  on:click={() => setActiveTab(7)}>EFC</button>
-          <button class="tab" class:active={activeTab===9}  on:click={() => setActiveTab(9)}>Export</button>
+          <button class="tab" class:active={activeTab===7}  on:click={() => setActiveTab(7)}>💰 Training Cost</button>
+          <button class="tab" class:active={activeTab===8}  on:click={() => setActiveTab(8)}>DODIC</button>
+          <button class="tab" class:active={activeTab===9}  on:click={() => setActiveTab(9)}>EFC</button>
+          <button class="tab" class:active={activeTab===10} on:click={() => setActiveTab(10)}>Export</button>
         </div>
       </div>
 
       <div class="tab-content" style="overflow-y:auto;flex:1;">
         {#if activeTab === 1}
+          <TabTaskOrg {config} />
+        {:else if activeTab === 2}
           <TabLogistics
             {config} {computed} {rsrValues} {csrByRound} {autoSync} {munKeys} {compositeGroups}
             on:rsrchange={handleRsrChange}
@@ -212,22 +216,22 @@
             on:addcustommun={handleAddCustomMun}
             on:removecustommun={handleRemoveCustomMun}
           />
-        {:else if activeTab === 2}
-          <TabFireMissions {config} {computed} />
         {:else if activeTab === 3}
           <TabDOS {config} {computed} />
         {:else if activeTab === 4}
-          <TabCost />
+          <TabFireMissions {config} {computed} />
         {:else if activeTab === 5}
           <TabPAA {config} {computed} />
         {:else if activeTab === 6}
-          <TabDodic />
+          <TabReadiness {config} />
         {:else if activeTab === 7}
-          <TabEfc {config} />
-        {:else if activeTab === 9}
-          <TabExport {config} {computed} {rsrValues} {csrByRound} />
+          <TabCost {config} />
         {:else if activeTab === 8}
-          <TabTaskOrg {config} />
+          <TabDodic />
+        {:else if activeTab === 9}
+          <TabEfc {config} />
+        {:else if activeTab === 10}
+          <TabExport {config} {computed} {rsrValues} {csrByRound} />
         {/if}
       </div>
     </div>

@@ -345,7 +345,7 @@
   <!-- 4. Planning Mode -->
   <div class="acc-section">
     <div class="acc-header" class:open={open.plan} on:click={() => toggle('plan')}>
-      <span>Planning Mode</span><span class="acc-arrow">▼</span>
+      <span>Ammo Entry Mode</span><span class="acc-arrow">▼</span>
     </div>
     {#if open.plan}
     <div class="acc-body">
@@ -399,7 +399,7 @@
   <!-- 7. DOS & Firing Rate -->
   <div class="acc-section">
     <div class="acc-header" class:open={open.dos} on:click={() => toggle('dos')}>
-      <span>DOS &amp; Firing Rate</span><span class="acc-arrow">▼</span>
+      <span>Firing Rate Assumptions</span><span class="acc-arrow">▼</span>
     </div>
     {#if open.dos}
     <div class="acc-body">
@@ -440,7 +440,7 @@
   <!-- 9. Tactical Realism -->
   <div class="acc-section">
     <div class="acc-header" class:open={open.tac} on:click={() => toggle('tac')}>
-      <span>Tactical Realism</span><span class="acc-arrow">▼</span>
+      <span>Friction Factors</span><span class="acc-arrow">▼</span>
     </div>
     {#if open.tac}
     <div class="acc-body">

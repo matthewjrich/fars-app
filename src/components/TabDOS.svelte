@@ -25,6 +25,23 @@
   }
 
   let breakdownOpen = false;
+  let forecastOpen  = false;
+  let forecastDays  = 5;
+
+  $: avgRdWt = v.isM119 ? 42 : v.isCannon ? 108 : 5111;
+  $: forecastRows = Array.from({ length: Math.max(1, Math.min(forecastDays, 30)) }, (_, i) => ({
+    day:         i + 1,
+    rounds:      Math.round(c.dailyUsage),
+    runs:        c.runsNeeded,
+    weightStons: (c.dailyUsage * avgRdWt) / 2000,
+    cost:        c.dailyRunCost,
+    ok:          c.runsPerDay >= c.runsNeeded,
+  }));
+  $: cumRounds  = forecastRows.reduce((a, r) => a + r.rounds, 0);
+  $: cumRuns    = forecastRows.reduce((a, r) => a + r.runs, 0);
+  $: cumWeight  = forecastRows.reduce((a, r) => a + r.weightStons, 0);
+  $: cumCost    = forecastRows.reduce((a, r) => a + r.cost, 0);
+  $: shortfallDays = forecastRows.filter(r => !r.ok).length;
 </script>
 
 <div class="section-title">Days of Supply &amp; Resupply Cycle</div>
@@ -116,6 +133,64 @@
       ▸ Runs/day: {v.planHours}÷{fmtD(c.totalTurnaround)} = <b style="color:var(--gold)">{c.runsPerDay}</b><br>
       ▸ Rds/run: {c.totalFlatracks}×{v.cclMode ? 144 : 160} = <b style="color:var(--gold)">{fmt(c.roundsPerRun)}</b><br>
       ▸ FY24 CL IX cost/run: <b style="color:var(--gold)">{fmtCurrency(c.totalRunCost)}</b> ({fmtD(c.distMiles, 1)} miles RT)
+    </div>
+  {/if}
+</div>
+
+<div class="expander" style="margin-top:8px;">
+  <div class="expander-header" on:click={() => forecastOpen = !forecastOpen}>
+    <span>📈 N-Day Ammo Projection</span>
+    <span>{forecastOpen ? '▲' : '▼'}</span>
+  </div>
+  {#if forecastOpen}
+    <div class="expander-body" style="padding:0;">
+      <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <label style="font-size:12px;color:var(--text-dim);white-space:nowrap;">Planning Horizon (days)</label>
+          <input type="number" bind:value={forecastDays} min="1" max="30" style="width:65px;">
+        </div>
+        {#if c.dailyUsage === 0}
+          <div style="font-size:12px;color:var(--text-dim);">Set firing rate in sidebar to project usage.</div>
+        {:else if shortfallDays > 0}
+          <div style="color:#ffa198;font-size:12px;font-weight:700;">⚠ {shortfallDays} day{shortfallDays > 1 ? 's' : ''} organic lift insufficient — augmentation required</div>
+        {:else}
+          <div style="color:#3fb950;font-size:12px;font-weight:700;">✓ Organic lift sustains all {forecastDays} days</div>
+        {/if}
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="data-table" style="margin:0;border-radius:0;">
+          <thead>
+            <tr>
+              <th>Day</th>
+              <th>{v.isCannon ? 'Rounds' : 'Pods'} Used</th>
+              <th>Runs Req</th>
+              <th>Weight (STONS)</th>
+              <th>Est. Cost</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {#each forecastRows as row}
+              <tr>
+                <td style="color:var(--text-dim);">D+{row.day}</td>
+                <td>{fmt(row.rounds)}</td>
+                <td>{row.runs}</td>
+                <td>{fmtD(row.weightStons, 1)}</td>
+                <td>{fmtCurrency(row.cost)}</td>
+                <td style="font-weight:700;color:{row.ok ? '#3fb950' : '#ffa198'};">{row.ok ? 'GO' : 'SHORTFALL'}</td>
+              </tr>
+            {/each}
+            <tr style="font-weight:700;border-top:2px solid var(--gold);color:var(--gold);">
+              <td>{forecastDays}-Day Total</td>
+              <td>{fmt(cumRounds)}</td>
+              <td>{cumRuns}</td>
+              <td>{fmtD(cumWeight, 1)}</td>
+              <td>{fmtCurrency(cumCost)}</td>
+              <td>—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   {/if}
 </div>
