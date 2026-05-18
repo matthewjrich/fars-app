@@ -1,8 +1,10 @@
 <script>
+  import { onMount } from 'svelte';
   import { EFC_TABLE, EFC_TABLE_105, BARREL_LIFE } from '../lib/data.js';
   import { fmtD } from '../lib/utils.js';
 
   export let config;
+  let _initialized = false;
 
   $: v = config;
   $: efcTable = v.isM119 ? EFC_TABLE_105 : EFC_TABLE;
@@ -38,6 +40,23 @@
 
   $: totalFleetEfc = gunTotals.reduce((a, g) => a + g.efc, 0);
   $: highestEfc = gunTotals.reduce((a, g) => Math.max(a, g.efc), 0);
+
+  onMount(() => {
+    try {
+      const raw = localStorage.getItem('fars_efc_v1');
+      if (raw) {
+        const s = JSON.parse(raw);
+        if (s.gunEfc != null) gunEfc = s.gunEfc;
+      }
+    } catch (_) {}
+    _initialized = true;
+  });
+
+  $: if (_initialized) {
+    try {
+      localStorage.setItem('fars_efc_v1', JSON.stringify({ gunEfc }));
+    } catch (_) {}
+  }
 </script>
 
 <div class="section-title">EFC (Equivalent Full Charge) Calculator</div>

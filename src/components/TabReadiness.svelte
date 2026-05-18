@@ -1,6 +1,8 @@
 <script>
+  import { onMount } from 'svelte';
   export let config;
   $: v = config;
+  let _initialized = false;
 
   // ── PERSTAT ──
   $: perstatElements = v.echelon === 'Battalion'
@@ -67,6 +69,24 @@
 
   function statusColor(pct) {
     return pct < 70 ? '#ffa198' : pct < 85 ? '#e3b341' : '#3fb950';
+  }
+
+  onMount(() => {
+    try {
+      const raw = localStorage.getItem('fars_readiness_v1');
+      if (raw) {
+        const s = JSON.parse(raw);
+        if (s.perstatData != null) perstatData = s.perstatData;
+        if (s.maintData   != null) maintData   = s.maintData;
+      }
+    } catch (_) {}
+    _initialized = true;
+  });
+
+  $: if (_initialized) {
+    try {
+      localStorage.setItem('fars_readiness_v1', JSON.stringify({ perstatData, maintData }));
+    } catch (_) {}
   }
 </script>
 

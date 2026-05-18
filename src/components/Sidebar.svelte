@@ -40,16 +40,23 @@
     'Rocket':      'HIMARS',
   });
 
+  function onSystemChange() {
+    onUnitTypeChange();
+    dispatch('unitchange');
+  }
+
   function onCategoryChange() {
     if (unitCategory === 'Composite') {
       if (echelon === 'Battalion') {
         useRoster = true;
         syncRoster();
       }
+      dispatch('unitchange');
     } else {
       useRoster = false;
       unitType = CATEGORY_DEFAULTS[unitCategory];
       onUnitTypeChange();
+      dispatch('unitchange');
     }
   }
 
@@ -207,7 +214,7 @@
       {#if unitCategory === 'Composite'}
         <div class="field">
           <label>Primary Ammo System</label>
-          <select bind:value={unitType} on:change={onUnitTypeChange}>
+          <select bind:value={unitType} on:change={onSystemChange}>
             <option>M109A7</option>
             <option>M109A6</option>
             <option>M777A2</option>
@@ -220,7 +227,7 @@
       {:else}
         <div class="field">
           <label>Primary Weapon System</label>
-          <select bind:value={unitType} on:change={onUnitTypeChange}>
+          <select bind:value={unitType} on:change={onSystemChange}>
             {#each CATEGORY_SYSTEMS[unitCategory] as sys}
               <option>{sys}</option>
             {/each}

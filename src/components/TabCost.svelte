@@ -14,6 +14,12 @@
   let evtEnd   = '';
   let evtDays  = 10;
 
+  $: datesSet = evtStart !== '' && evtEnd !== '';
+  $: if (datesSet) {
+    const diff = Math.round((new Date(evtEnd + 'T12:00:00') - new Date(evtStart + 'T12:00:00')) / 86400000) + 1;
+    if (diff > 0) evtDays = diff;
+  }
+
   // CL I
   let cl1Mre   = 1;
   let cl1Ugr   = 2;
@@ -39,6 +45,10 @@
 
   // CL VIII
   let cl8Extra = 0;
+
+  // Accordion state — CL I and CL III(B) open by default
+  let clOpen = { cl1: true, cl2: false, cl3b: true, cl3p: false, cl4: false, cl8: false };
+  function toggleCl(k) { clOpen = { ...clOpen, [k]: !clOpen[k] }; }
 
   // ── Computed totals ──
   $: cl1Total = (cl1Mre * MRE_COST + cl1Ugr * UGR_COST + cl1Jd * JD_COST + cl1Water * WATER_CASE_COST) * evtPax * evtDays;
@@ -133,11 +143,11 @@
   }
 </script>
 
-<div class="section-title">Training Event Cost Estimator</div>
-<p style="font-size:13px;color:var(--text-dim);margin-bottom:16px;">FY24 OSMIS rates · Class I–IX estimator for unit training events.</p>
+<div class="section-title" style="margin-top:8px;">Training Event Cost Estimator</div>
+<p style="font-size:13px;color:var(--text-dim);margin-bottom:14px;">FY24 OSMIS rates · Class I–IX estimator for unit training events.</p>
 
 <!-- Event Info -->
-<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;">
   <div class="field"><label>Unit</label><input type="text" bind:value={evtUnit} placeholder="e.g. 1-15 FA"></div>
   <div class="field"><label>Event Name</label><input type="text" bind:value={evtName} placeholder="e.g. EFMB, XCTC"></div>
   <div class="field">
@@ -147,145 +157,195 @@
   </div>
   <div class="field"><label>Start Date</label><input type="date" bind:value={evtStart}></div>
   <div class="field"><label>End Date</label><input type="date" bind:value={evtEnd}></div>
-  <div class="field"><label>Event Days</label><input type="number" bind:value={evtDays} min="1"></div>
+  <div class="field">
+    <label>Event Days</label>
+    <input type="number" bind:value={evtDays} min="1" readonly={datesSet}
+      style={datesSet ? 'opacity:0.75;cursor:default;' : ''}>
+    {#if datesSet}
+      <div style="font-size:11px;color:var(--od-bright);margin-top:4px;">Auto-calculated from dates</div>
+    {/if}
+  </div>
 </div>
 
-<hr>
-
 <!-- Grand Total Banner -->
-<div style="background:linear-gradient(135deg,#1a2033,#2a1a2a);border:2px solid var(--gold);border-radius:8px;padding:18px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;">
+<div style="background:linear-gradient(135deg,#1a2033,#2a1a2a);border:2px solid var(--gold);border-radius:8px;padding:16px 18px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
   <div>
     <div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;font-weight:700;">Estimated Grand Total</div>
-    <div style="font-size:28px;color:var(--gold);font-family:'Share Tech',sans-serif;font-weight:700;">{fmtCurrency(grandTotal)}</div>
+    <div style="font-size:26px;color:var(--gold);font-family:'Share Tech',sans-serif;font-weight:700;">{fmtCurrency(grandTotal)}</div>
     <div style="font-size:12px;color:var(--text-dim);">{evtPax} PAX · {evtDays} days</div>
   </div>
-  <div style="display:flex;gap:10px;flex-wrap:wrap;">
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
     <button class="btn" on:click={copyCostLogstat}>📋 Copy LOGSTAT</button>
     <button class="btn" on:click={downloadCostCsv}>⬇ Download CSV</button>
     <button class="btn btn-outline" style="color:#ffa198;border-color:#ffa198;" on:click={resetAll}>↺ Reset</button>
   </div>
 </div>
 
-<!-- CL I Subsistence -->
-<div class="section-title">CL I — Subsistence</div>
-<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
-  <div class="field">
-    <label>MRE (meals/pax/day)</label>
-    <input type="number" bind:value={cl1Mre} min="0" max="3">
-    <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">${MRE_COST}/meal → {fmtCurrency(cl1Mre * MRE_COST * evtPax * evtDays)}</div>
+<!-- CL I -->
+<div class="expander">
+  <div class="expander-header" on:click={() => toggleCl('cl1')}>
+    <span>CL I — Subsistence &nbsp;<span style="color:var(--text-dim);font-weight:400;font-size:12px;">{fmtCurrency(cl1Total)}</span></span>
+    <span>{clOpen.cl1 ? '▲' : '▼'}</span>
   </div>
-  <div class="field">
-    <label>UGR (meals/pax/day)</label>
-    <input type="number" bind:value={cl1Ugr} min="0" max="3">
-    <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">${UGR_COST}/meal → {fmtCurrency(cl1Ugr * UGR_COST * evtPax * evtDays)}</div>
+  {#if clOpen.cl1}
+  <div class="expander-body">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
+      <div class="field">
+        <label>MRE (meals/pax/day)</label>
+        <input type="number" bind:value={cl1Mre} min="0" max="3">
+        <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">${MRE_COST}/meal → {fmtCurrency(cl1Mre * MRE_COST * evtPax * evtDays)}</div>
+      </div>
+      <div class="field">
+        <label>UGR (meals/pax/day)</label>
+        <input type="number" bind:value={cl1Ugr} min="0" max="3">
+        <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">${UGR_COST}/meal → {fmtCurrency(cl1Ugr * UGR_COST * evtPax * evtDays)}</div>
+      </div>
+      <div class="field">
+        <label>JD (meals/pax/day)</label>
+        <input type="number" bind:value={cl1Jd} min="0" max="3">
+        <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">${JD_COST}/meal → {fmtCurrency(cl1Jd * JD_COST * evtPax * evtDays)}</div>
+      </div>
+      <div class="field">
+        <label>Water (cases/pax/day)</label>
+        <input type="number" bind:value={cl1Water} min="0">
+        <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">${WATER_CASE_COST}/case → {fmtCurrency(cl1Water * WATER_CASE_COST * evtPax * evtDays)}</div>
+      </div>
+    </div>
   </div>
-  <div class="field">
-    <label>JD (meals/pax/day)</label>
-    <input type="number" bind:value={cl1Jd} min="0" max="3">
-    <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">${JD_COST}/meal → {fmtCurrency(cl1Jd * JD_COST * evtPax * evtDays)}</div>
-  </div>
-  <div class="field">
-    <label>Water (cases/pax/day)</label>
-    <input type="number" bind:value={cl1Water} min="0">
-    <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">${WATER_CASE_COST}/case → {fmtCurrency(cl1Water * WATER_CASE_COST * evtPax * evtDays)}</div>
-  </div>
+  {/if}
 </div>
-<div class="metric-card" style="margin-bottom:16px;"><div class="metric-label">CL I Total</div><div class="metric-value">{fmtCurrency(cl1Total)}</div></div>
 
 <!-- CL II -->
-<div class="section-title">CL II — Clothing &amp; Individual Equipment</div>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-  <div class="field">
-    <label>Equipment Estimate ($/pax)</label>
-    <input type="number" bind:value={cl2Extra} min="0">
-    <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">→ {fmtCurrency(cl2Extra * evtPax)}</div>
+<div class="expander">
+  <div class="expander-header" on:click={() => toggleCl('cl2')}>
+    <span>CL II — Clothing &amp; Equipment &nbsp;<span style="color:var(--text-dim);font-weight:400;font-size:12px;">{fmtCurrency(cl2Total)}</span></span>
+    <span>{clOpen.cl2 ? '▲' : '▼'}</span>
   </div>
-  <div class="field">
-    <label>POPO / Miscellaneous ($/pax)</label>
-    <input type="number" bind:value={cl2Popo} min="0">
-    <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">→ {fmtCurrency(cl2Popo * evtPax)}</div>
+  {#if clOpen.cl2}
+  <div class="expander-body">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="field">
+        <label>Equipment Estimate ($/pax)</label>
+        <input type="number" bind:value={cl2Extra} min="0">
+        <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">→ {fmtCurrency(cl2Extra * evtPax)}</div>
+      </div>
+      <div class="field">
+        <label>POPO / Miscellaneous ($/pax)</label>
+        <input type="number" bind:value={cl2Popo} min="0">
+        <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">→ {fmtCurrency(cl2Popo * evtPax)}</div>
+      </div>
+    </div>
   </div>
+  {/if}
 </div>
-<div class="metric-card" style="margin-bottom:16px;"><div class="metric-label">CL II Total</div><div class="metric-value">{fmtCurrency(cl2Total)}</div></div>
 
 <!-- CL III(B) + CL IX -->
-<div class="section-title">CL III(B) Fuel &amp; CL IX Parts — By Vehicle</div>
-<div style="overflow-x:auto;margin-bottom:16px;">
-  <table class="data-table" style="min-width:700px;">
-    <thead>
-      <tr>
-        <th>Vehicle</th><th>Qty</th><th>Miles</th><th>CL IX Cost</th><th>Fuel Cost</th><th>Total</th>
-      </tr>
-    </thead>
-    <tbody>
-      {#each vehNames as k, i}
-        <tr class:dim={!vehQty[k]}>
-          <td style="font-size:12px;">{k}</td>
-          <td><input type="number" value={vehQty[k]} min="0" style="width:60px;"
-            on:input={e => vehQty = {...vehQty, [k]: parseInt(e.target.value)||0}}></td>
-          <td><input type="number" value={vehMiles[k]} min="0" style="width:70px;"
-            on:input={e => vehMiles = {...vehMiles, [k]: parseFloat(e.target.value)||0}}></td>
-          <td style="color:var(--gold);">{fmtCurrency(vehRows[i].clIXCost)}</td>
-          <td style="color:#4fc3f7;">{fmtCurrency(vehRows[i].fuelCost)}</td>
-          <td style="font-weight:700;">{fmtCurrency(vehRows[i].total)}</td>
-        </tr>
-      {/each}
-    </tbody>
-  </table>
-</div>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-  <div class="metric-card blue"><div class="metric-label">CL III(B) Fuel Total</div><div class="metric-value">{fmtCurrency(cl3bTotal)}</div></div>
-  <div class="metric-card"><div class="metric-label">CL IX Parts Total</div><div class="metric-value">{fmtCurrency(clIXTotal)}</div></div>
+<div class="expander">
+  <div class="expander-header" on:click={() => toggleCl('cl3b')}>
+    <span>CL III(B) Fuel &amp; CL IX Parts &nbsp;<span style="color:var(--text-dim);font-weight:400;font-size:12px;">{fmtCurrency(cl3bTotal + clIXTotal)}</span></span>
+    <span>{clOpen.cl3b ? '▲' : '▼'}</span>
+  </div>
+  {#if clOpen.cl3b}
+  <div class="expander-body" style="padding:0;">
+    <div style="overflow-x:auto;">
+      <table class="data-table" style="margin:0;border-radius:0;">
+        <thead>
+          <tr><th>Vehicle</th><th>Qty</th><th>Miles</th><th>CL IX Cost</th><th>Fuel Cost</th><th>Total</th></tr>
+        </thead>
+        <tbody>
+          {#each vehNames as k, i}
+            <tr class:dim={!vehQty[k]}>
+              <td style="font-size:12px;">{k}</td>
+              <td><input type="number" value={vehQty[k]} min="0" style="width:60px;"
+                on:input={e => vehQty = {...vehQty, [k]: parseInt(e.target.value)||0}}></td>
+              <td><input type="number" value={vehMiles[k]} min="0" style="width:70px;"
+                on:input={e => vehMiles = {...vehMiles, [k]: parseFloat(e.target.value)||0}}></td>
+              <td style="color:var(--gold);">{fmtCurrency(vehRows[i].clIXCost)}</td>
+              <td style="color:#4fc3f7;">{fmtCurrency(vehRows[i].fuelCost)}</td>
+              <td style="font-weight:700;">{fmtCurrency(vehRows[i].total)}</td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 14px;">
+      <div class="metric-card blue" style="margin-bottom:0;"><div class="metric-label">CL III(B) Fuel</div><div class="metric-value">{fmtCurrency(cl3bTotal)}</div></div>
+      <div class="metric-card" style="margin-bottom:0;"><div class="metric-label">CL IX Parts</div><div class="metric-value">{fmtCurrency(clIXTotal)}</div></div>
+    </div>
+  </div>
+  {/if}
 </div>
 
 <!-- CL III(P) -->
-<div class="section-title">CL III(P) — Packaged POL</div>
-<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">
-  {#each POL_ITEMS as item, i}
-    <div class="field">
-      <label>{item.name} <span style="color:var(--text-dim);">(${item.cost}/unit)</span></label>
-      <input type="number" value={polQty[i]} min="0"
-        on:input={e => { polQty[i] = parseInt(e.target.value)||0; polQty = [...polQty]; }}>
-      <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">→ {fmtCurrency((polQty[i]||0)*item.cost)}</div>
+<div class="expander">
+  <div class="expander-header" on:click={() => toggleCl('cl3p')}>
+    <span>CL III(P) — Packaged POL &nbsp;<span style="color:var(--text-dim);font-weight:400;font-size:12px;">{fmtCurrency(cl3pTotal)}</span></span>
+    <span>{clOpen.cl3p ? '▲' : '▼'}</span>
+  </div>
+  {#if clOpen.cl3p}
+  <div class="expander-body">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+      {#each POL_ITEMS as item, i}
+        <div class="field">
+          <label>{item.name} <span style="color:var(--text-dim);">(${item.cost}/unit)</span></label>
+          <input type="number" value={polQty[i]} min="0"
+            on:input={e => { polQty[i] = parseInt(e.target.value)||0; polQty = [...polQty]; }}>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">→ {fmtCurrency((polQty[i]||0)*item.cost)}</div>
+        </div>
+      {/each}
     </div>
-  {/each}
+  </div>
+  {/if}
 </div>
-<div class="metric-card" style="margin-bottom:16px;"><div class="metric-label">CL III(P) Total</div><div class="metric-value">{fmtCurrency(cl3pTotal)}</div></div>
 
 <!-- CL IV -->
-<div class="section-title">CL IV — Construction Material</div>
-<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
-  <div class="field">
-    <label>Concertina Wire (rolls, ${CL4_WIRE_COST}/roll)</label>
-    <input type="number" bind:value={cl4Wire} min="0">
-    <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">→ {fmtCurrency(cl4Wire*CL4_WIRE_COST)}</div>
+<div class="expander">
+  <div class="expander-header" on:click={() => toggleCl('cl4')}>
+    <span>CL IV — Construction Material &nbsp;<span style="color:var(--text-dim);font-weight:400;font-size:12px;">{fmtCurrency(cl4Total)}</span></span>
+    <span>{clOpen.cl4 ? '▲' : '▼'}</span>
   </div>
-  <div class="field">
-    <label>Concertina Clips (rolls, ${CL4_CONC_COST}/roll)</label>
-    <input type="number" bind:value={cl4Conc} min="0">
-    <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">→ {fmtCurrency(cl4Conc*CL4_CONC_COST)}</div>
+  {#if clOpen.cl4}
+  <div class="expander-body">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+      <div class="field">
+        <label>Concertina Wire (rolls, ${CL4_WIRE_COST}/roll)</label>
+        <input type="number" bind:value={cl4Wire} min="0">
+        <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">→ {fmtCurrency(cl4Wire*CL4_WIRE_COST)}</div>
+      </div>
+      <div class="field">
+        <label>Concertina Clips (rolls, ${CL4_CONC_COST}/roll)</label>
+        <input type="number" bind:value={cl4Conc} min="0">
+        <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">→ {fmtCurrency(cl4Conc*CL4_CONC_COST)}</div>
+      </div>
+      <div class="field">
+        <label>Other CL IV ($)</label>
+        <input type="number" bind:value={cl4Other} min="0">
+        <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">→ {fmtCurrency(cl4Other)}</div>
+      </div>
+    </div>
   </div>
-  <div class="field">
-    <label>Other CL IV ($)</label>
-    <input type="number" bind:value={cl4Other} min="0">
-    <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">→ {fmtCurrency(cl4Other)}</div>
-  </div>
+  {/if}
 </div>
-<div class="metric-card" style="margin-bottom:16px;"><div class="metric-label">CL IV Total</div><div class="metric-value">{fmtCurrency(cl4Total)}</div></div>
 
 <!-- CL VIII -->
-<div class="section-title">CL VIII — Medical Material</div>
-<div style="display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:16px;">
-  <div class="field">
-    <label>Medical Estimate ($/pax)</label>
-    <input type="number" bind:value={cl8Extra} min="0">
-    <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">→ {fmtCurrency(cl8Extra * evtPax)}</div>
+<div class="expander">
+  <div class="expander-header" on:click={() => toggleCl('cl8')}>
+    <span>CL VIII — Medical Material &nbsp;<span style="color:var(--text-dim);font-weight:400;font-size:12px;">{fmtCurrency(cl8Total)}</span></span>
+    <span>{clOpen.cl8 ? '▲' : '▼'}</span>
   </div>
+  {#if clOpen.cl8}
+  <div class="expander-body">
+    <div class="field" style="max-width:300px;">
+      <label>Medical Estimate ($/pax)</label>
+      <input type="number" bind:value={cl8Extra} min="0">
+      <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">→ {fmtCurrency(cl8Extra * evtPax)}</div>
+    </div>
+  </div>
+  {/if}
 </div>
-<div class="metric-card" style="margin-bottom:16px;"><div class="metric-label">CL VIII Total</div><div class="metric-value">{fmtCurrency(cl8Total)}</div></div>
 
-<!-- Summary Table -->
-<div class="section-title">Cost Summary</div>
+<!-- Cost Summary -->
+<div class="section-title" style="margin-top:8px;">Cost Summary</div>
 <table class="data-table">
   <thead><tr><th>Class</th><th>Description</th><th>Amount</th></tr></thead>
   <tbody>

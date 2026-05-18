@@ -91,11 +91,11 @@ hr{border:none;border-top:1px solid var(--border);margin:12px 0;}
 .tab-panel.active{display:block;}
 
 /* ── CONTENT AREA ── */
-.tab-content{padding:18px 24px 40px;}
+.tab-content{padding:12px 20px 20px;max-width:1200px;}
 
 /* ── METRIC CARDS ── */
-.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px;}
-.metric-card{background:var(--bg-card);border:1px solid var(--border);border-top:2px solid var(--od);padding:12px 14px;border-radius:6px;}
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:12px;}
+.metric-card{background:var(--bg-card);border:1px solid var(--border);border-top:2px solid var(--od);padding:10px 12px;border-radius:6px;}
 .metric-label{color:var(--text-dim);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;}
 .metric-value{color:var(--gold);font-size:18px;font-weight:700;font-family:'Share Tech',sans-serif;line-height:1.2;}
 .metric-sub{color:var(--text-dim);font-size:10px;margin-top:3px;}
@@ -104,7 +104,7 @@ hr{border:none;border-top:1px solid var(--border);margin:12px 0;}
 .metric-card.warn{border-top-color:var(--warn-acc);}
 .metric-card.danger{border-top-color:var(--danger-acc);}
 
-.section-title{color:var(--text-bright);font-size:12px;font-weight:700;margin-bottom:12px;text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;gap:8px;}
+.section-title{color:var(--text-bright);font-size:12px;font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;gap:8px;}
 .section-title::after{content:'';flex:1;height:1px;background:var(--border);}
 
 /* ── GAUGE ── */

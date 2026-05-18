@@ -110,11 +110,10 @@
   {/each}
 </div>
 
-{#if !ok && c.runsNeeded > 0}
-  <div class="alert alert-error">⚠️ RESUPPLY SHORTFALL: Need {c.runsNeeded} runs/day, organic lift supports only {c.runsPerDay}.</div>
-{/if}
 {#if c.dosAvail < 1 && c.dosAvail < 999}
-  <div class="alert alert-error">🚨 CRITICAL: Less than 1 DOS.</div>
+  <div class="alert alert-error">🚨 CRITICAL: Less than 1 DOS.{!ok ? ` Resupply shortfall — need ${c.runsNeeded} runs/day, only ${c.runsPerDay} possible.` : ''}</div>
+{:else if !ok && c.runsNeeded > 0}
+  <div class="alert alert-error">⚠️ RESUPPLY SHORTFALL: Need {c.runsNeeded} runs/day, organic lift supports only {c.runsPerDay}.</div>
 {:else if c.dosAvail < 3 && c.dosAvail < 999}
   <div class="alert alert-warn">⚠️ Less than 3 DOS. Initiate emergency resupply.</div>
 {:else if c.dosAvail < 999}

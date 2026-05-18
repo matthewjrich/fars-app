@@ -2,6 +2,24 @@
   import { NEW_LBS } from '../lib/data.js';
   import { fmt, fmtD, gaugeColor } from '../lib/utils.js';
 
+  // Q-D hazard classification and K-factors (DA Pam 385-64 Table 2-1)
+  const QD_HAZARD = {
+    '155mm HE':           { hd:'1.1', k_ibd:1250, k_ptr:600, k_ild:200 },
+    '155mm RAP':          { hd:'1.1', k_ibd:1250, k_ptr:600, k_ild:200 },
+    '155mm DPICM':        { hd:'1.1', k_ibd:1250, k_ptr:600, k_ild:200 },
+    '155mm WP/SMK':       { hd:'1.3', k_ibd:900,  k_ptr:375, k_ild:75  },
+    '155mm EXCAL':        { hd:'1.1', k_ibd:1250, k_ptr:600, k_ild:200 },
+    '155mm ILLUM':        { hd:'1.3', k_ibd:900,  k_ptr:375, k_ild:75  },
+    '105mm HE':           { hd:'1.1', k_ibd:1250, k_ptr:600, k_ild:200 },
+    '105mm RAP':          { hd:'1.1', k_ibd:1250, k_ptr:600, k_ild:200 },
+    '105mm ILLUM':        { hd:'1.3', k_ibd:900,  k_ptr:375, k_ild:75  },
+    '105mm WP/SMK':       { hd:'1.3', k_ibd:900,  k_ptr:375, k_ild:75  },
+    'GMLRS Pod':          { hd:'1.1', k_ibd:1250, k_ptr:600, k_ild:200 },
+    'ATACMS':             { hd:'1.1', k_ibd:1250, k_ptr:600, k_ild:200 },
+    'Propellant Charge L':{ hd:'1.3', k_ibd:900,  k_ptr:375, k_ild:75  },
+    'Propellant Charge H':{ hd:'1.3', k_ibd:900,  k_ptr:375, k_ild:75  },
+  };
+
   export let config;
   export let computed;
 
@@ -24,6 +42,24 @@
     if (v.isCannon) return k.startsWith('155mm') || k.startsWith('Propellant');
     return k.includes('GMLRS') || k.includes('ATACMS');
   });
+
+  // Q-D Arc Calculator state
+  let qdOpen = false;
+  let qdMun = '';
+  let qdQty = 1;
+
+  $: qdOptions = newRows.map(([k]) => k);
+  $: { if (qdOptions.length > 0 && !qdOptions.includes(qdMun)) qdMun = qdOptions[0]; }
+  $: qdNewPerRound = NEW_LBS[qdMun] || 0;
+  $: qdTotalNew    = qdNewPerRound * Math.max(1, qdQty || 1);
+  $: qdH           = QD_HAZARD[qdMun] || { hd:'1.1', k_ibd:1250, k_ptr:600, k_ild:200 };
+  $: qdCbrt        = Math.cbrt(qdTotalNew);
+  $: qdIbd_ft      = Math.round(qdH.k_ibd * qdCbrt);
+  $: qdPtr_ft      = Math.round(qdH.k_ptr * qdCbrt);
+  $: qdIld_ft      = Math.max(50, Math.round(qdH.k_ild * qdCbrt));
+  $: qdIbd_m       = Math.round(qdIbd_ft * 0.3048);
+  $: qdPtr_m       = Math.round(qdPtr_ft * 0.3048);
+  $: qdIld_m       = Math.round(qdIld_ft * 0.3048);
 </script>
 
 <div class="section-title">PAA Storage &amp; Distribution</div>
@@ -108,4 +144,57 @@
 
 <div class="alert alert-info" style="margin-top:16px;">
   ℹ️ <b>Storage Note:</b> Q-D arcs and compatible groups determine physical separation requirements. Consult DA Pam 385-64 and installation SOP for magazine construction standards. CCL configuration reduces handling time but does not change Q-D requirements.
+</div>
+
+<div class="expander" style="margin-top:16px;">
+  <div class="expander-header" on:click={() => qdOpen = !qdOpen}>
+    <span>Q-D Arc Calculator — DA Pam 385-64</span>
+    <span>{qdOpen ? '▲' : '▼'}</span>
+  </div>
+  {#if qdOpen}
+  <div class="expander-body">
+    <p style="font-size:12px;color:var(--text-dim);margin-bottom:14px;">
+      Quantity-Distance arcs by munition type and quantity. Formula: D = K × NEW<sup>1/3</sup>.
+      HD 1.1 = mass detonating (HE, DPICM, rockets) · HD 1.3 = mass fire (WP, ILLUM, propellant).
+    </p>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;align-items:end;margin-bottom:16px;">
+      <div class="field">
+        <label>Munition Type</label>
+        <select bind:value={qdMun}>
+          {#each qdOptions as opt}
+            <option>{opt}</option>
+          {/each}
+        </select>
+      </div>
+      <div class="field">
+        <label>Quantity (rounds / pods)</label>
+        <input type="number" bind:value={qdQty} min="1">
+      </div>
+      <div style="padding-bottom:8px;">
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px;">HD {qdH.hd} · {qdNewPerRound} lbs NEW/rd</div>
+        <div style="font-size:14px;font-family:'Share Tech',sans-serif;color:var(--gold);font-weight:700;">Total NEW: {qdTotalNew.toFixed(1)} lbs</div>
+      </div>
+    </div>
+    <div class="metric-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:12px;">
+      <div class="metric-card">
+        <div class="metric-label">IBD</div>
+        <div class="metric-value">{fmt(qdIbd_ft)} ft</div>
+        <div class="metric-sub">{fmt(qdIbd_m)} m · Inhabited Building</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">PTR</div>
+        <div class="metric-value">{fmt(qdPtr_ft)} ft</div>
+        <div class="metric-sub">{fmt(qdPtr_m)} m · Public Traffic Route</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">ILD</div>
+        <div class="metric-value">{fmt(qdIld_ft)} ft</div>
+        <div class="metric-sub">{fmt(qdIld_m)} m · Intraline (min 50 ft)</div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--text-dim);">
+      Results are computed estimates only. Verify with installation safety officer and current DA Pam 385-64 before site selection.
+    </div>
+  </div>
+  {/if}
 </div>

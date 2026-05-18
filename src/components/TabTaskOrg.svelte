@@ -1,4 +1,7 @@
 <script>
+  import { onMount } from 'svelte';
+  import { nmcCount, paceDown } from '../lib/nmc.js';
+
   export let config;
   $: v = config;
 
@@ -134,6 +137,162 @@
 
   function removeUnit(id) { attached = attached.filter(u => u.id !== id); }
 
+  // ── PACE Plan ──
+  const PACE_TIERS = ['P', 'A', 'C', 'E'];
+  const PACE_TIER_FULL = { P: 'Primary', A: 'Alternate', C: 'Contingency', E: 'Emergency' };
+  const PACE_STATUS_COLOR = { UP: '#3fb950', DEGRADED: '#e3b341', DOWN: '#ffa198' };
+
+  function makePlan(id, title = '') {
+    return { id, title, entries: PACE_TIERS.map(tier => ({ tier, means: '', details: '', status: 'UP' })) };
+  }
+
+  let pacePlans  = [makePlan(1, '')];
+  let paceNextId = 2;
+
+  $: paceDown.set(pacePlans.reduce((a, pl) => a + pl.entries.filter(e => e.status === 'DOWN').length, 0));
+
+  function addPlan() { pacePlans = [...pacePlans, makePlan(paceNextId++)]; }
+  function removePlan(id) {
+    if (pacePlans.length <= 1) return;
+    pacePlans = pacePlans.filter(p => p.id !== id);
+  }
+  function setPaceTitle(id, val) {
+    pacePlans = pacePlans.map(p => p.id === id ? { ...p, title: val } : p);
+  }
+  function setPaceEntry(planId, tier, field, val) {
+    pacePlans = pacePlans.map(p => {
+      if (p.id !== planId) return p;
+      return { ...p, entries: p.entries.map(e => e.tier === tier ? { ...e, [field]: val } : e) };
+    });
+  }
+
+  // ── NMC Tracker ──
+  let nmcItems  = [];
+  let nmcNextId = 1;
+
+  $: nmcCount.set(nmcItems.length);
+
+  $: nmcRollup = nmcItems.reduce((acc, n) => {
+    const key = n.unit || 'Unassigned';
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+
+  function addNmc() {
+    nmcItems = [...nmcItems, { id: nmcNextId++, unit: '', equipment: '', fault: '', rtd: '' }];
+  }
+  function removeNmc(id) { nmcItems = nmcItems.filter(n => n.id !== id); }
+  function setNmc(id, field, val) {
+    nmcItems = nmcItems.map(n => n.id === id ? { ...n, [field]: val } : n);
+  }
+
+  // ── CP Locations ──
+  const CP_STATUSES = ['Active', 'Displaced', 'En Route', 'Stand-by'];
+  const CP_STATUS_COLOR = {
+    'Active':    '#3fb950',
+    'Displaced': '#e3b341',
+    'En Route':  '#79c0ff',
+    'Stand-by':  '#7d917a',
+  };
+
+  let cpList    = [
+    { id: 1, name: 'Main CP', grid: '', status: 'Active' },
+    { id: 2, name: '',        grid: '', status: 'Active' },
+  ];
+  let cpNextId  = 3;
+
+  function addCp() {
+    cpList = [...cpList, { id: cpNextId++, name: '', grid: '', status: 'Active' }];
+  }
+  function removeCp(id) {
+    if (cpList.length <= 1) return;
+    cpList = cpList.filter(c => c.id !== id);
+  }
+  function setCp(id, field, val) {
+    cpList = cpList.map(c => c.id === id ? { ...c, [field]: val } : c);
+  }
+
+  // ── PAA Locations ──
+  const PAA_STATUSES = ['In Position', 'Displacing', 'En Route', 'Unoccupied'];
+  const PAA_STATUS_COLOR = {
+    'In Position': '#3fb950',
+    'Displacing':  '#e3b341',
+    'En Route':    '#79c0ff',
+    'Unoccupied':  '#7d917a',
+  };
+
+  let paaList = [
+    { id: 1, name: '', grid: '', unit: '', guns: '', status: 'In Position' },
+    { id: 2, name: '', grid: '', unit: '', guns: '', status: 'In Position' },
+  ];
+  let paaNextId = 3;
+  let _paaInit  = false;
+
+  // Lookup: unit name → array of PAA labels (name preferred, grid as fallback)
+  $: paaByUnit = paaList
+    .filter(p => p.unit && (p.name || p.grid))
+    .reduce((acc, p) => {
+      const label = p.name || p.grid;
+      if (!acc[p.unit]) acc[p.unit] = [];
+      acc[p.unit].push(label);
+      return acc;
+    }, {});
+
+  // Firing elements available for PAA assignment (organic + attached with tubes)
+  $: paaUnitOptions = [
+    ...organic.filter(o => o.tubes > 0),
+    ...attached,
+  ];
+
+  function addPaa() {
+    paaList = [...paaList, { id: paaNextId++, name: '', grid: '', unit: '', guns: '', status: 'In Position' }];
+  }
+  function resetPaaOccupancy() {
+    paaList = paaList.map(p => ({ ...p, unit: '', guns: '' }));
+  }
+  function removePaa(id) {
+    if (paaList.length <= 1) return;
+    paaList = paaList.filter(p => p.id !== id);
+  }
+  function setPaa(id, field, val) {
+    if (field === 'unit') {
+      const match = paaUnitOptions.find(o => o.name === val);
+      paaList = paaList.map(p => p.id !== id ? p : { ...p, unit: val, guns: match?.tubes || '' });
+    } else {
+      paaList = paaList.map(p => p.id === id ? { ...p, [field]: val } : p);
+    }
+  }
+
+  onMount(() => {
+    try {
+      const raw = localStorage.getItem('fars_taskorg_v1');
+      if (raw) {
+        const s = JSON.parse(raw);
+        if (s.paaList?.length) {
+          paaList   = s.paaList;
+          paaNextId = Math.max(...paaList.map(p => p.id)) + 1;
+        }
+        if (s.cpList?.length) {
+          cpList   = s.cpList;
+          cpNextId = Math.max(...cpList.map(c => c.id)) + 1;
+        }
+        if (s.nmcItems?.length) {
+          nmcItems  = s.nmcItems;
+          nmcNextId = Math.max(...nmcItems.map(n => n.id)) + 1;
+        }
+        if (s.pacePlans?.length) {
+          pacePlans  = s.pacePlans;
+          paceNextId = Math.max(...pacePlans.map(p => p.id)) + 1;
+        }
+      }
+    } catch (_) {}
+    _paaInit = true;
+  });
+
+  $: if (_paaInit) {
+    try { localStorage.setItem('fars_taskorg_v1', JSON.stringify({ paaList, cpList, nmcItems, pacePlans })); } catch (_) {}
+  }
+
   $: bracketText = buildBracket();
   function buildBracket() {
     const lines = [];
@@ -142,7 +301,8 @@
     lines.push(`  ${v.echelon} · ${v.tubes} tubes · ${v.unitType}`);
     for (const k of children) {
       const tube = k.tubes > 0 ? ` [${k.tubes}× ${k.sub}]` : (k.sub ? ` [${k.sub}]` : '');
-      lines.push(`    ${k.name}${tube}  (${k.rel})`);
+      const paa  = paaByUnit[k.name]?.length ? `  → ${paaByUnit[k.name].join(' / ')}` : '';
+      lines.push(`    ${k.name}${tube}  (${k.rel})${paa}`);
       if (k.notes) lines.push(`      * ${k.notes}`);
     }
     return lines.join('\n');
@@ -150,6 +310,22 @@
 </script>
 
 <div class="taskorg-wrap">
+
+  <!-- NMC Alert Banner -->
+  {#if nmcItems.length > 0}
+  <div style="background:rgba(248,81,73,0.1);border:1px solid rgba(248,81,73,0.5);border-radius:6px;padding:10px 14px;margin-bottom:14px;">
+    <div style="font-size:12px;font-weight:700;color:#ffa198;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.8px;">
+      ⚠ NMC — {nmcItems.length} Item{nmcItems.length !== 1 ? 's' : ''} Non-Mission Capable
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+      {#each Object.entries(nmcRollup) as [unit, count]}
+        <span style="background:rgba(248,81,73,0.15);border:1px solid rgba(248,81,73,0.35);border-radius:4px;padding:2px 10px;font-size:12px;color:#ffa198;font-weight:700;font-family:'Share Tech',sans-serif;">
+          {unit}: {count}
+        </span>
+      {/each}
+    </div>
+  </div>
+  {/if}
 
   <!-- Header bar -->
   <div class="to-header">
@@ -213,6 +389,9 @@
                   <div class="org-sub">{node.tubes}× {node.sub}</div>
                 {:else if node.sub}
                   <div class="org-sub">{node.sub}</div>
+                {/if}
+                {#if paaByUnit[node.name]?.length}
+                  <div class="org-sub" style="color:#79c0ff;font-weight:700;">{paaByUnit[node.name].join(' / ')}</div>
                 {/if}
                 {#if node.notes}
                   <div class="org-sub" style="font-style:italic;">{node.notes}</div>
@@ -284,6 +463,203 @@
       {/if}
     </div>
   {/if}
+
+  <!-- CP Locations -->
+  <hr style="margin:6px 0 14px;">
+  <div class="section-title">Command Post (CP) Locations</div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+    {#each cpList as cp (cp.id)}
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:6px;overflow:hidden;">
+        <div style="display:flex;align-items:center;gap:7px;padding:7px 10px;background:var(--bg-input);border-bottom:1px solid var(--border);">
+          <div style="width:7px;height:7px;border-radius:50%;flex-shrink:0;background:{CP_STATUS_COLOR[cp.status]};"></div>
+          <input type="text" value={cp.name}
+            placeholder="CP designation (e.g. Main CP, TAC CP, CTCP)"
+            style="flex:1;background:transparent;border:none;color:var(--gold);font-weight:700;font-size:13px;padding:0;font-family:'Rajdhani',sans-serif;min-width:0;"
+            on:input={e => setCp(cp.id, 'name', e.target.value)}>
+          <select value={cp.status}
+            style="width:100px;font-size:11px;padding:2px 4px;flex-shrink:0;color:{CP_STATUS_COLOR[cp.status]};font-weight:700;"
+            on:change={e => setCp(cp.id, 'status', e.target.value)}>
+            {#each CP_STATUSES as s}<option>{s}</option>{/each}
+          </select>
+          {#if cpList.length > 1}
+            <button on:click={() => removeCp(cp.id)}
+              style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:15px;line-height:1;padding:0;flex-shrink:0;"
+              title="Remove">×</button>
+          {/if}
+        </div>
+        <div style="padding:9px 10px;">
+          <div class="field" style="margin:0;">
+            <label>Grid (8-digit MGRS)</label>
+            <input type="text" value={cp.grid}
+              placeholder="18S UJ 1234 5678"
+              style="font-family:'Share Tech',sans-serif;"
+              on:input={e => setCp(cp.id, 'grid', e.target.value)}>
+          </div>
+        </div>
+      </div>
+    {/each}
+  </div>
+  <button class="btn btn-outline btn-sm" on:click={addCp} style="margin-bottom:16px;">+ Add CP</button>
+
+  <!-- PAA Locations -->
+  <hr style="margin:6px 0 14px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+    <div class="section-title" style="margin:0;flex:1;">Position Areas (PAA)</div>
+    <button class="btn btn-outline btn-sm" on:click={resetPaaOccupancy}
+      style="font-size:11px;padding:3px 10px;color:var(--text-dim);"
+      title="Clear all unit assignments — keeps PAA names, grids, and status">
+      Reset Occupancy
+    </button>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+    {#each paaList as paa (paa.id)}
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:6px;overflow:hidden;">
+        <!-- Card header -->
+        <div style="display:flex;align-items:center;gap:7px;padding:7px 10px;background:var(--bg-input);border-bottom:1px solid var(--border);">
+          <div style="width:7px;height:7px;border-radius:50%;flex-shrink:0;background:{PAA_STATUS_COLOR[paa.status]};"></div>
+          <input type="text" value={paa.name}
+            placeholder="PAA name (e.g. PAA IRON)"
+            style="flex:1;background:transparent;border:none;color:var(--gold);font-weight:700;font-size:13px;padding:0;font-family:'Rajdhani',sans-serif;min-width:0;"
+            on:input={e => setPaa(paa.id, 'name', e.target.value)}>
+          <select value={paa.status}
+            style="width:112px;font-size:11px;padding:2px 4px;flex-shrink:0;color:{PAA_STATUS_COLOR[paa.status]};font-weight:700;"
+            on:change={e => setPaa(paa.id, 'status', e.target.value)}>
+            {#each PAA_STATUSES as s}<option>{s}</option>{/each}
+          </select>
+          {#if paaList.length > 1}
+            <button on:click={() => removePaa(paa.id)}
+              style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:15px;line-height:1;padding:0;flex-shrink:0;"
+              title="Remove">×</button>
+          {/if}
+        </div>
+        <!-- Card body -->
+        <div style="padding:9px 10px;display:flex;flex-direction:column;gap:7px;">
+          <div class="field" style="margin:0;">
+            <label>Grid (8-digit MGRS)</label>
+            <input type="text" value={paa.grid}
+              placeholder="18S UJ 1234 5678"
+              style="font-family:'Share Tech',sans-serif;"
+              on:input={e => setPaa(paa.id, 'grid', e.target.value)}>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 60px;gap:7px;align-items:end;">
+            <div class="field" style="margin:0;">
+              <label>Occupying Unit</label>
+              <select value={paa.unit} on:change={e => setPaa(paa.id, 'unit', e.target.value)}>
+                <option value="">— Unassigned —</option>
+                {#each paaUnitOptions as o}
+                  <option value={o.name}>{o.name}{o.tubes > 0 ? ` (${o.tubes})` : ''}</option>
+                {/each}
+              </select>
+            </div>
+            <div class="field" style="margin:0;">
+              <label>Guns</label>
+              <input type="number" value={paa.guns} min="0" placeholder="—"
+                on:input={e => setPaa(paa.id, 'guns', e.target.value === '' ? '' : parseInt(e.target.value) || 0)}>
+            </div>
+          </div>
+        </div>
+      </div>
+    {/each}
+  </div>
+  <button class="btn btn-outline btn-sm" on:click={addPaa} style="margin-bottom:16px;">+ Add PAA</button>
+
+  <!-- PACE Plan -->
+  <hr style="margin:6px 0 14px;">
+  <div class="section-title">PACE Plan</div>
+
+  {#each pacePlans as plan (plan.id)}
+    {@const hasDown     = plan.entries.some(e => e.status === 'DOWN')}
+    {@const hasDegraded = plan.entries.some(e => e.status === 'DEGRADED')}
+    <div style="background:var(--bg-card);border:1px solid {hasDown ? 'rgba(248,81,73,0.55)' : hasDegraded ? 'rgba(200,130,10,0.45)' : 'var(--border)'};border-radius:6px;overflow:hidden;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--bg-input);border-bottom:1px solid var(--border);">
+        <input type="text" value={plan.title}
+          placeholder="PACE Plan name (e.g. Fires Net, C2, Logistics)"
+          style="flex:1;background:transparent;border:none;color:var(--gold);font-weight:700;font-size:13px;padding:0;font-family:'Rajdhani',sans-serif;min-width:0;"
+          on:input={e => setPaceTitle(plan.id, e.target.value)}>
+        {#if hasDown}
+          <span style="font-size:11px;font-weight:700;color:#ffa198;letter-spacing:0.5px;">NET DOWN</span>
+        {:else if hasDegraded}
+          <span style="font-size:11px;font-weight:700;color:#e3b341;letter-spacing:0.5px;">DEGRADED</span>
+        {/if}
+        {#if pacePlans.length > 1}
+          <button on:click={() => removePlan(plan.id)}
+            style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:15px;line-height:1;padding:0;flex-shrink:0;"
+            title="Remove plan">×</button>
+        {/if}
+      </div>
+      <table style="width:100%;border-collapse:collapse;">
+        {#each plan.entries as entry}
+          {@const isDown = entry.status === 'DOWN'}
+          {@const isDeg  = entry.status === 'DEGRADED'}
+          <tr style="background:{isDown ? 'rgba(248,81,73,0.08)' : isDeg ? 'rgba(200,130,10,0.07)' : 'transparent'};border-bottom:1px solid var(--border);">
+            <td style="width:36px;padding:6px 10px;text-align:center;font-family:'Share Tech',sans-serif;font-size:15px;font-weight:700;color:{isDown ? '#ffa198' : isDeg ? '#e3b341' : 'var(--gold)'};"
+                title="{PACE_TIER_FULL[entry.tier]}">{entry.tier}</td>
+            <td style="padding:4px 6px;width:35%;">
+              <input type="text" value={entry.means}
+                placeholder="Means (e.g. SINCGARS FM, HF, Messenger)"
+                style="width:100%;font-size:12px;"
+                on:input={e => setPaceEntry(plan.id, entry.tier, 'means', e.target.value)}>
+            </td>
+            <td style="padding:4px 6px;">
+              <input type="text" value={entry.details}
+                placeholder="Freq / Callsign / Details"
+                style="width:100%;font-size:12px;font-family:'Share Tech',sans-serif;"
+                on:input={e => setPaceEntry(plan.id, entry.tier, 'details', e.target.value)}>
+            </td>
+            <td style="width:110px;padding:4px 6px;">
+              <select value={entry.status}
+                style="width:100%;font-size:12px;font-weight:700;color:{PACE_STATUS_COLOR[entry.status]};"
+                on:change={e => setPaceEntry(plan.id, entry.tier, 'status', e.target.value)}>
+                <option>UP</option>
+                <option>DEGRADED</option>
+                <option>DOWN</option>
+              </select>
+            </td>
+          </tr>
+        {/each}
+      </table>
+    </div>
+  {/each}
+  <button class="btn btn-outline btn-sm" on:click={addPlan} style="margin-bottom:16px;">+ Add PACE Plan</button>
+
+  <!-- NMC Tracker -->
+  <hr style="margin:6px 0 14px;">
+  <div class="section-title" style="color:#ffa198;">NMC — Non-Mission Capable</div>
+
+  {#if nmcItems.length > 0}
+  <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
+    {#each nmcItems as item (item.id)}
+      <div style="background:var(--bg-card);border:1px solid rgba(248,81,73,0.3);border-radius:5px;padding:7px 10px;display:grid;grid-template-columns:140px 1fr 1fr 100px auto;gap:8px;align-items:center;">
+        <select value={item.unit} on:change={e => setNmc(item.id, 'unit', e.target.value)}
+          style="font-size:12px;padding:4px 6px;">
+          <option value="">— Unit —</option>
+          {#each [...organic, ...attached] as o}
+            <option value={o.name}>{o.name}</option>
+          {/each}
+        </select>
+        <input type="text" value={item.equipment} placeholder="Equipment (e.g. Gun 2, PLS #3)"
+          style="font-size:12px;"
+          on:input={e => setNmc(item.id, 'equipment', e.target.value)}>
+        <input type="text" value={item.fault} placeholder="Fault / Reason"
+          style="font-size:12px;"
+          on:input={e => setNmc(item.id, 'fault', e.target.value)}>
+        <input type="text" value={item.rtd} placeholder="Est. RTD"
+          style="font-size:12px;"
+          on:input={e => setNmc(item.id, 'rtd', e.target.value)}>
+        <button on:click={() => removeNmc(item.id)}
+          style="background:none;border:none;color:#ffa198;cursor:pointer;font-size:16px;line-height:1;padding:0;"
+          title="Clear NMC item">×</button>
+      </div>
+    {/each}
+  </div>
+  {/if}
+
+  <button class="btn btn-outline btn-sm" on:click={addNmc}
+    style="margin-bottom:16px;border-color:rgba(248,81,73,0.4);color:#ffa198;">
+    + Log NMC Item
+  </button>
 
   <!-- Legend -->
   <div class="to-legend">
