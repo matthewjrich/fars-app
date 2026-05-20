@@ -1,6 +1,6 @@
 # FARS — Field Artillery Resource Sync
 ## User Manual
-**Version:** 2.2 | **Updated:** May 2026 | **Cost Factors:** OSMIS FY24 | **Classification:** UNCLASSIFIED // FOR OFFICIAL USE ONLY
+**Version:** 2.3 | **Updated:** May 2026 | **Cost Factors:** OSMIS FY24 | **Classification:** UNCLASSIFIED // FOR OFFICIAL USE ONLY
 
 ---
 
@@ -46,10 +46,22 @@ The sidebar is organized into collapsible accordion sections. Click a section he
 Enable **Non-Standard Configuration** to configure a mixed or non-standard battalion. Set each battery's weapon system and tube count independently. Use **+ Add Battery** and **×** to manage the roster.
 
 #### 3. Load Configuration *(Cannon systems only)*
+The app uses the Army planning rule of thumb of **86 complete rounds per flatrack** (projectile + propellant + fuze). ATP 3-09.23 Table 7-2 lists 160 (loose) and 144 (CCL) as projectile-only counts; the 86-round factor reflects a loaded flatrack as a complete ammunition package.
+
 | Option | Description |
 |---|---|
-| **Loose** | 160 rounds per flatrack (default) |
-| **CCL** | Combat Configured Load — 144 rounds per flatrack, faster upload |
+| **Loose** | Standard packing configuration |
+| **CCL** | Combat Configured Load — pre-loaded for faster upload |
+
+Default vehicle counts by echelon (M109 series):
+
+| Echelon | PLS Trucks | M1076 Trailers | CATs |
+|---|---|---|---|
+| Battalion | 18 | 18 | 18 |
+| Battery | 6 | 6 | 6 |
+| Platoon | 0 | 0 | 2 |
+
+*Platoon has no organic ammunition section — PLS trucks and trailers are battery-level assets.*
 
 #### 4. Planning Mode
 | Mode | Description |
@@ -173,7 +185,7 @@ Tracks equipment that is non-mission capable and provides a unit roll-up.
 
 #### Organic Haul Capacity
 - **Total Weight** — gross lift capacity of all assigned vehicles
-- **Total Round Capacity** — maximum rounds that fit given current load config
+- **Total Rounds** — maximum rounds that fit across all lift assets. For M109 series includes: flatracks (PLS trucks + trailers × 86), CATs (× 95 per CAT), and on-board stowage (× 39 per M109A7/A6 howitzer)
 - **Capacity Utilization** — how much of available haul capacity the RSR uses
 
 #### RSR Input *(Manual planning mode only)*
@@ -189,7 +201,9 @@ Authorized total is automatically calculated: `CSR × number of systems`
 - **AUTH** (green) — RSR is within the authorized limit
 - **EXCEEDS** (red) — RSR exceeds authorization; shows how many rounds over
 
-**Auto-Sync Support Items** *(155mm only)* — automatically calculates propellant charges and fuze quantities from projectile quantities. Uncheck to enter manually.
+**Auto-Sync Support Items** *(155mm only)* — automatically calculates propellant charges (M231/M232) and fuze quantities (PGK, MOFA, ET) from projectile quantities. Uncheck to enter manually.
+
+> **WIP:** Auto-sync charge and fuze ratios have not been verified against TC 3-09.81 or ATP 3-09.70. Verify before operational use. A warning banner appears in the app when Auto-Sync is active.
 
 #### Doctrinal RSR Defaults *(cannon systems only)*
 Check **Use Doctrinal RSR Defaults (ATP 3-09.23)** to pre-fill the primary HE round with a planning total derived from ATP 3-09.23 Table 7-4 (25 February 2026).
@@ -429,7 +443,7 @@ Each block has an editable title (e.g., D+1, OPORD Notes, Fire Support Coord) an
 | **CSR** | Controlled Supply Rate — what higher HQ authorizes (rds/system/day) |
 | **DOS** | Days of Supply — how long current ammo sustains operations at the firing rate |
 | **EFC** | Equivalent Full Charge — measure of cumulative barrel wear |
-| **CCL** | Combat Configured Load — pre-packaged flatrack (144 rds vs 160 loose) |
+| **CCL** | Combat Configured Load — pre-packaged flatrack configuration. App uses 86 complete rounds/flatrack as the Army planning rule of thumb regardless of mode |
 | **PAA** | Position Area for Artillery — the firing position occupied by the battery |
 | **BSA** | Battery Support Area — rear logistics node |
 | **ASP** | Ammunition Supply Point — source for resupply runs |
