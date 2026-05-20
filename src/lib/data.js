@@ -39,21 +39,21 @@ export const UGR_COST = 14.58;
 export const JD_COST = 5.50;
 
 export const MUNITION_155 = {
-  "D529 M795 (HE)":         {wt:108.1, cube:0.54, hazmat:"1.2H", compat:"H", type:"155mm"},
-  "DA12 M1122 (HE TRNG)":   {wt:108.1, cube:0.54, hazmat:"1.2H", compat:"H", type:"155mm"},
-  "D579 M549A1 (RAP)":      {wt:102.5, cube:0.58, hazmat:"1.2H", compat:"H", type:"155mm"},
-  "DA54 M1113 (RAP ER)":    {wt:105.0, cube:0.58, hazmat:"1.2H", compat:"H", type:"155mm"},
-  "D563 M483A1 (DPICM)":    {wt:110.0, cube:0.56, hazmat:"1.2H", compat:"H", type:"155mm"},
-  "D864 M864 (BBDPICM)":    {wt:112.5, cube:0.57, hazmat:"1.2H", compat:"H", type:"155mm"},
-  "D550 M110 (WP)":         {wt:104.2, cube:0.55, hazmat:"1.3G", compat:"G", type:"155mm"},
-  "D528 M825 (SMK)":        {wt:104.2, cube:0.55, hazmat:"1.3G", compat:"G", type:"155mm"},
-  "DA45 M982 (EXCAL)":      {wt:156.0, cube:0.72, hazmat:"1.2H", compat:"H", type:"155mm"},
-  "D503 M718 (RAAM-L)":     {wt:110.8, cube:0.56, hazmat:"1.2H", compat:"H", type:"155mm"},
-  "D509 M741 (RAAM-S)":     {wt:110.8, cube:0.56, hazmat:"1.2H", compat:"H", type:"155mm"},
-  "D505 M485 (ILLUM)":      {wt:98.3,  cube:0.52, hazmat:"1.3G", compat:"G", type:"155mm"},
-  "DA49 M1066 (IR ILLUM)":  {wt:96.0,  cube:0.51, hazmat:"1.3G", compat:"G", type:"155mm"},
-  "DA51 M1123 (IR ER)":     {wt:101.0, cube:0.53, hazmat:"1.2H", compat:"H", type:"155mm"},
-  "DA52 M1124 (VIS ER)":    {wt:101.0, cube:0.53, hazmat:"1.2H", compat:"H", type:"155mm"},
+  "D529 M795 (HE)":         {wt:135.7, cube:0.54, hazmat:"1.2H", compat:"H", type:"155mm"},
+  "DA12 M1122 (HE TRNG)":   {wt:135.7, cube:0.54, hazmat:"1.2H", compat:"H", type:"155mm"},
+  "D579 M549A1 (RAP)":      {wt:135.7, cube:0.58, hazmat:"1.2H", compat:"H", type:"155mm"},
+  "DA54 M1113 (RAP ER)":    {wt:135.7, cube:0.58, hazmat:"1.2H", compat:"H", type:"155mm"},
+  "D563 M483A1 (DPICM)":    {wt:135.7, cube:0.56, hazmat:"1.2H", compat:"H", type:"155mm"},
+  "D864 M864 (BBDPICM)":    {wt:135.7, cube:0.57, hazmat:"1.2H", compat:"H", type:"155mm"},
+  "D550 M110 (WP)":         {wt:135.7, cube:0.55, hazmat:"1.3G", compat:"G", type:"155mm"},
+  "D528 M825 (SMK)":        {wt:135.7, cube:0.55, hazmat:"1.3G", compat:"G", type:"155mm"},
+  "DA45 M982 (EXCAL)":      {wt:135.7, cube:0.72, hazmat:"1.2H", compat:"H", type:"155mm"},
+  "D503 M718 (RAAM-L)":     {wt:135.7, cube:0.56, hazmat:"1.2H", compat:"H", type:"155mm"},
+  "D509 M741 (RAAM-S)":     {wt:135.7, cube:0.56, hazmat:"1.2H", compat:"H", type:"155mm"},
+  "D505 M485 (ILLUM)":      {wt:135.7, cube:0.52, hazmat:"1.3G", compat:"G", type:"155mm"},
+  "DA49 M1066 (IR ILLUM)":  {wt:135.7, cube:0.51, hazmat:"1.3G", compat:"G", type:"155mm"},
+  "DA51 M1123 (IR ER)":     {wt:135.7, cube:0.53, hazmat:"1.2H", compat:"H", type:"155mm"},
+  "DA52 M1124 (VIS ER)":    {wt:135.7, cube:0.53, hazmat:"1.2H", compat:"H", type:"155mm"},
 };
 
 export const MUNITION_ROCKETS = {
@@ -87,15 +87,15 @@ export const FUZES = {
 };
 
 export const MUNITION_105 = {
-  "A064 M1 (HE)":           {wt:42.0, cube:0.28, hazmat:"1.2H", compat:"H", type:"105mm"},
-  "A071 M84A1 (HE)":        {wt:42.0, cube:0.28, hazmat:"1.2H", compat:"H", type:"105mm"},
-  "A515 M913 (HE-RAP)":     {wt:44.0, cube:0.30, hazmat:"1.2H", compat:"H", type:"105mm"},
-  "A508 M60A2 (WP)":        {wt:40.5, cube:0.27, hazmat:"1.3G", compat:"G", type:"105mm"},
-  "A520 M60 (WP)":          {wt:40.5, cube:0.27, hazmat:"1.3G", compat:"G", type:"105mm"},
-  "A530 M915 (DPICM)":      {wt:43.0, cube:0.29, hazmat:"1.2H", compat:"H", type:"105mm"},
-  "A578 M1130A1 (HE PFF BB)":{wt:43.5, cube:0.29, hazmat:"1.2H", compat:"H", type:"105mm"},
-  "A505 M314A3 (ILLUM)":    {wt:38.0, cube:0.26, hazmat:"1.3G", compat:"G", type:"105mm"},
-  "A521 M929 (SMK HC)":     {wt:39.0, cube:0.26, hazmat:"1.3G", compat:"G", type:"105mm"},
+  "A064 M1 (HE)":           {wt:68.5, cube:0.28, hazmat:"1.2H", compat:"H", type:"105mm"},
+  "A071 M84A1 (HE)":        {wt:68.5, cube:0.28, hazmat:"1.2H", compat:"H", type:"105mm"},
+  "A515 M913 (HE-RAP)":     {wt:68.5, cube:0.30, hazmat:"1.2H", compat:"H", type:"105mm"},
+  "A508 M60A2 (WP)":        {wt:68.5, cube:0.27, hazmat:"1.3G", compat:"G", type:"105mm"},
+  "A520 M60 (WP)":          {wt:68.5, cube:0.27, hazmat:"1.3G", compat:"G", type:"105mm"},
+  "A530 M915 (DPICM)":      {wt:68.5, cube:0.29, hazmat:"1.2H", compat:"H", type:"105mm"},
+  "A578 M1130A1 (HE PFF BB)":{wt:68.5, cube:0.29, hazmat:"1.2H", compat:"H", type:"105mm"},
+  "A505 M314A3 (ILLUM)":    {wt:68.5, cube:0.26, hazmat:"1.3G", compat:"G", type:"105mm"},
+  "A521 M929 (SMK HC)":     {wt:68.5, cube:0.26, hazmat:"1.3G", compat:"G", type:"105mm"},
 };
 
 export const EFC_TABLE_105 = [
@@ -110,6 +110,44 @@ export const EFC_TABLE_105 = [
 ];
 
 export const ALL_DODIC = {...MUNITION_155, ...MUNITION_ROCKETS, ...MUNITION_105, ...CHARGES, ...FUZES};
+
+// ATP 3-09.23 (25 Feb 2026) Table 7-4 — rounds per weapon per day by caliber/operation/level/phase
+export const RSR_DEFAULTS = {
+  '105mm': {
+    'Covering Force': {
+      '1-Heavy':    { first: 491, succ: 511, prot: 198 },
+      '2-Moderate': { first: 319, succ: 332, prot: 129 },
+      '3-Light':    { first: 172, succ: 179, prot: 69  },
+    },
+    'Defense of Position': {
+      '1-Heavy':    { first: 423, succ: 467, prot: 222 },
+      '2-Moderate': { first: 275, succ: 304, prot: 144 },
+      '3-Light':    { first: 148, succ: 163, prot: 78  },
+    },
+    'Attack of Position': {
+      '1-Heavy':    { first: 376, succ: 381, prot: 210 },
+      '2-Moderate': { first: 244, succ: 248, prot: 137 },
+      '3-Light':    { first: 132, succ: 133, prot: 74  },
+    },
+  },
+  '155mm': {
+    'Covering Force': {
+      '1-Heavy':    { first: 254, succ: 274, prot: 174 },
+      '2-Moderate': { first: 165, succ: 178, prot: 113 },
+      '3-Light':    { first: 89,  succ: 96,  prot: 61  },
+    },
+    'Defense of Position': {
+      '1-Heavy':    { first: 203, succ: 207, prot: 183 },
+      '2-Moderate': { first: 132, succ: 135, prot: 119 },
+      '3-Light':    { first: 71,  succ: 72,  prot: 64  },
+    },
+    'Attack of Position': {
+      '1-Heavy':    { first: 146, succ: 153, prot: 140 },
+      '2-Moderate': { first: 95,  succ: 99,  prot: 91  },
+      '3-Light':    { first: 51,  succ: 54,  prot: 49  },
+    },
+  },
+};
 
 export const VEH_LBS = {
   "M1075A1 PLS":   32250,

@@ -128,10 +128,11 @@ REFERENCE / TOOLS TABS
 
 **Logistics Tab:**
 1. Show the haul capacity summary at the top
-2. Walk through RSR entry for M795 HE and M107 Propellant
-3. Show AUTH / EXCEEDS badge
-4. Point out Auto-Sync (charges and fuzes calculate automatically)
-5. Show capacity utilization gauge
+2. Show **Doctrinal RSR Defaults** — check "Use Doctrinal Defaults", select Operation Type → Covering Force, Level → 2-Moderate, Phase → First Day; show the RSR total auto-populate from ATP 3-09.23 Table 7-4
+3. Uncheck to restore manual entry; walk through RSR entry for M795 HE and M107 Propellant
+4. Show AUTH / EXCEEDS badge
+5. Point out Auto-Sync (charges and fuzes calculate automatically)
+6. Show capacity utilization gauge
 
 **DOS & Resupply Tab:**
 1. Show Days of Supply metric

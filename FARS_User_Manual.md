@@ -1,6 +1,6 @@
 # FARS — Field Artillery Resource Sync
 ## User Manual
-**Version:** 2.1 | **Updated:** May 2026 | **Cost Factors:** OSMIS FY24 | **Classification:** UNCLASSIFIED // FOR OFFICIAL USE ONLY
+**Version:** 2.2 | **Updated:** May 2026 | **Cost Factors:** OSMIS FY24 | **Classification:** UNCLASSIFIED // FOR OFFICIAL USE ONLY
 
 ---
 
@@ -191,6 +191,23 @@ Authorized total is automatically calculated: `CSR × number of systems`
 
 **Auto-Sync Support Items** *(155mm only)* — automatically calculates propellant charges and fuze quantities from projectile quantities. Uncheck to enter manually.
 
+#### Doctrinal RSR Defaults *(cannon systems only)*
+Check **Use Doctrinal RSR Defaults (ATP 3-09.23)** to pre-fill the primary HE round with a planning total derived from ATP 3-09.23 Table 7-4 (25 February 2026).
+
+Select three parameters:
+
+| Parameter | Options |
+|---|---|
+| **Operation Type** | Covering Force / Defense of Position / Attack of Position |
+| **Intensity Level** | 1-Heavy / 2-Moderate / 3-Light |
+| **Day Phase** | First Day / Subsequent Days / Protection |
+
+The displayed rate (rounds/weapon/day) is multiplied by the tube count to produce a total RSR. That total is applied to the primary HE round (D529 M795 for 155mm, A064 M1 for 105mm); all other RSR inputs are set to zero and locked while the checkbox is active.
+
+Uncheck **Use Doctrinal RSR Defaults** to restore your previously entered values and re-enable manual editing.
+
+> Doctrinal totals represent the combined round requirement per weapon across all munition types for that scenario. Redistribute to individual round types as the mission requires. Always verify against the current version of ATP 3-09.23 and applicable higher HQ guidance.
+
 #### Custom / Non-Standard Ammunition
 Click **+ Add Custom Ammo** → enter name and weight (lbs) → click **Add**. Custom rounds appear in the RSR grid with the same inputs. Remove with ×.
 
@@ -340,7 +357,9 @@ Each CL section shows its running subtotal in the accordion header. Sections def
 
 Use filter buttons (ALL / 155mm / 105mm / Rockets / Charges / Fuzes) and the search box to find specific rounds.
 
-Each card shows: round designation, DODIC, weight (lbs), cube (ft³), hazmat class, and compatibility group.
+Each card shows: round designation, DODIC, planning weight (lbs per complete round, IAW ATP 3-09.23 Table 7-4), cube (ft³), hazmat class, and compatibility group.
+
+> **Weight basis:** All weights reflect doctrinal complete-round planning weights — 135.7 lbs for 155mm and 68.5 lbs for 105mm — per ATP 3-09.23 Table 7-4 footnote 3. These are the same weights used in haul capacity and tonnage calculations throughout the application.
 
 ---
 

@@ -187,6 +187,10 @@
     rsrValues = { ...rsrValues, [e.detail.key]: e.detail.value };
   }
 
+  function handleApplyRsrDefaults(e) {
+    rsrValues = { ...e.detail.values };
+  }
+
   function handleCsrByRoundChange(e) {
     csrByRound = { ...csrByRound, [e.detail.key]: e.detail.value };
   }
@@ -267,6 +271,7 @@
           <TabLogistics
             {config} {computed} {rsrValues} {csrByRound} {autoSync} {munKeys} {compositeGroups}
             on:rsrchange={handleRsrChange}
+            on:applyrsrdefaults={handleApplyRsrDefaults}
             on:autosyncchange={e => autoSync = e.detail}
             on:csrbyround={handleCsrByRoundChange}
             on:addcustommun={handleAddCustomMun}

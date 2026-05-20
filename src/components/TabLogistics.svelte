@@ -1,6 +1,6 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import { MUNITION_155, MUNITION_ROCKETS, MUNITION_105, VEH_COSTS, MLC_DATA } from '../lib/data.js';
+  import { MUNITION_155, MUNITION_ROCKETS, MUNITION_105, VEH_COSTS, MLC_DATA, RSR_DEFAULTS } from '../lib/data.js';
   import { getMlcVehiclesForUnit } from '../lib/compute.js';
   import { fmt, fmtD, fmtCurrency, gaugeColor } from '../lib/utils.js';
 
@@ -108,6 +108,45 @@
     const tubes = tubeOverride != null ? tubeOverride : (v.tubes || 1);
     const auth  = csr * tubes;
     return { rsr, csr, auth, set: csr > 0, exceeds: csr > 0 && rsr > auth };
+  }
+
+  // ── Doctrinal RSR defaults (ATP 3-09.23 Table 7-4) ──
+  let useDoctrinalRsr = false;
+  let docOpType = 'Defense of Position';
+  let docLevel  = '1-Heavy';
+  let docPhase  = 'first';
+  let savedRsrValues = {};
+
+  $: docCaliber  = v.isM119 ? '105mm' : '155mm';
+  $: docRate     = RSR_DEFAULTS[docCaliber]?.[docOpType]?.[docLevel]?.[docPhase] ?? 0;
+  $: docTotal    = Math.round(docRate * (v.tubes || 0));
+  $: primaryHEKey = v.isM119 ? 'A064 M1 (HE)' : 'D529 M795 (HE)';
+
+  // Reset when unit type changes
+  let _prevUnitType = '';
+  $: if (v.unitType !== _prevUnitType) {
+    if (_prevUnitType !== '') { useDoctrinalRsr = false; savedRsrValues = {}; }
+    _prevUnitType = v.unitType;
+  }
+
+  function handleDocDefaultToggle() {
+    if (useDoctrinalRsr) {
+      savedRsrValues = { ...rsrValues };
+      applyDocDefaults();
+    } else {
+      dispatch('applyrsrdefaults', { values: { ...savedRsrValues } });
+      savedRsrValues = {};
+    }
+  }
+
+  function applyDocDefaults() {
+    if (!useDoctrinalRsr) return;
+    const rate  = RSR_DEFAULTS[docCaliber]?.[docOpType]?.[docLevel]?.[docPhase] ?? 0;
+    const total = Math.round(rate * (v.tubes || 0));
+    const newVals = {};
+    munKeys.forEach(k => { newVals[k] = 0; });
+    if (total > 0) newVals[primaryHEKey] = total;
+    dispatch('applyrsrdefaults', { values: newVals });
   }
 
   // Custom munition add form
@@ -271,6 +310,52 @@
     <div class="section-title" style="margin-top:8px">
       RSR Input — {v.isM119 ? '105mm Munitions' : v.isCannon ? '155mm Munitions' : 'Rockets & Missiles'}
     </div>
+
+    {#if v.isCannon}
+    <div class="doc-defaults-panel" class:doc-active={useDoctrinalRsr}>
+      <div class="toggle-row" style="margin-bottom:0;">
+        <input type="checkbox" id="useDocDefault" bind:checked={useDoctrinalRsr}
+          on:change={handleDocDefaultToggle}>
+        <label for="useDocDefault" style="font-weight:600;">
+          Use Doctrinal Defaults
+          <span style="font-weight:400;color:var(--text-dim);font-size:10px;margin-left:4px;">ATP 3-09.23 Table 7-4</span>
+        </label>
+      </div>
+      {#if useDoctrinalRsr}
+        <div class="doc-selectors">
+          <div class="field" style="margin:0;">
+            <label style="font-size:10px;">Operation Type</label>
+            <select bind:value={docOpType} on:change={applyDocDefaults} style="font-size:12px;padding:4px 6px;">
+              <option>Covering Force</option>
+              <option>Defense of Position</option>
+              <option>Attack of Position</option>
+            </select>
+          </div>
+          <div class="field" style="margin:0;">
+            <label style="font-size:10px;">Level</label>
+            <select bind:value={docLevel} on:change={applyDocDefaults} style="font-size:12px;padding:4px 6px;">
+              <option>1-Heavy</option>
+              <option>2-Moderate</option>
+              <option>3-Light</option>
+            </select>
+          </div>
+          <div class="field" style="margin:0;">
+            <label style="font-size:10px;">Day Phase</label>
+            <select bind:value={docPhase} on:change={applyDocDefaults} style="font-size:12px;padding:4px 6px;">
+              <option value="first">First Day</option>
+              <option value="succ">Succeeding Days (2–4)</option>
+              <option value="prot">Protracted (6–15)</option>
+            </select>
+          </div>
+        </div>
+        <div class="doc-rate-display">
+          <span>Doctrinal rate: <b style="color:var(--gold);">{docRate} rds/tube/day</b> × {v.tubes} tubes = <b style="color:var(--gold);">{docTotal.toLocaleString()} rds</b></span>
+          <span style="color:var(--text-dim);font-size:10px;">Applied to {primaryHEKey} — uncheck to distribute manually</span>
+        </div>
+      {/if}
+    </div>
+    {/if}
+
     <div class="rsr-grid">
       {#each rsrCols as col}
         <div class="rsr-col">
@@ -290,6 +375,7 @@
               </div>
               <div class="rsr-csr-inputs">
                 <input type="number" class="rsr-input" value={cmp.rsr} min="0"
+                  disabled={useDoctrinalRsr}
                   on:input={e => onRsrInput(k, e.target.value)}>
                 <input type="number" class="rsr-input csr-input" value={cmp.csr || ''} min="0" step="0.1"
                   placeholder="—" title="CSR: rounds per system per day"

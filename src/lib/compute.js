@@ -8,7 +8,7 @@ export function computeValues(v, rsrValues, autoSync = true) {
   const rPF = v.cclMode ? 144 : 160;
 
   if (v.isM119) {
-    const rdsPerHmmwv = Math.floor(VEH_LBS['M1097 HMMWV'] / 42);
+    const rdsPerHmmwv = Math.floor(VEH_LBS['M1097 HMMWV'] / 68.5);
     haulLbs = v.hmmwvQty * VEH_LBS['M1097 HMMWV'];
     totalRoundsCap = v.hmmwvQty * rdsPerHmmwv;
     capacityVal = totalRoundsCap;
@@ -63,7 +63,7 @@ export function computeValues(v, rsrValues, autoSync = true) {
       currentTotalRsr = sumPods / (v.tubes || 1);
     }
   } else {
-    const avgRdWt = v.isM119 ? 42 : v.isCannon ? 108 : 5111;
+    const avgRdWt = v.isM119 ? 68.5 : v.isCannon ? 135.7 : 5111;
     reqWeight = haulLbs * (v.loadPct / 100);
     totalItems = Math.ceil(reqWeight / avgRdWt);
     currentTotalRsr = totalItems / (v.tubes || 1);
@@ -83,7 +83,7 @@ export function computeValues(v, rsrValues, autoSync = true) {
   const totalTurnaround = ((v.dist * 2) / v.speed) + v.loadTime;
   const runsPerDay = Math.max(0, Math.floor(v.planHours / totalTurnaround));
   const roundsPerRun = v.isM119
-    ? (v.hmmwvQty * Math.floor(VEH_LBS['M1097 HMMWV'] / 42))
+    ? (v.hmmwvQty * Math.floor(VEH_LBS['M1097 HMMWV'] / 68.5))
     : v.isCannon
       ? (totalFlatracks * rPF + v.catQty * 95)
       : (totalFlatracks * 4);

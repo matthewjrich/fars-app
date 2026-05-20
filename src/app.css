@@ -141,6 +141,12 @@ hr{border:none;border-top:1px solid var(--border);margin:12px 0;}
 .csr-ok{background:rgba(74,138,58,0.18);color:#7ee787;}
 .csr-exceed{background:rgba(248,81,73,0.18);color:#ffa198;}
 .csr-auth-line{font-size:10px;color:var(--text-dim);line-height:1.4;}
+.doc-defaults-panel{background:var(--bg-card);border:1px solid var(--border);border-radius:5px;padding:10px 12px;margin-bottom:12px;}
+.doc-defaults-panel.doc-active{border-color:var(--od-dim);}
+.doc-selectors{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
+.doc-selectors .field{flex:1;min-width:130px;}
+.doc-rate-display{display:flex;flex-direction:column;gap:2px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:12px;}
+.rsr-input:disabled{opacity:0.45;cursor:not-allowed;}
 
 .info-box{background:var(--bg-card);border:1px solid var(--border);border-radius:5px;padding:10px 14px;font-size:13px;margin-bottom:10px;color:var(--text);line-height:1.7;}
 
