@@ -14,6 +14,10 @@
   --text:#c8d4b5;--text-dim:#7d917a;--text-bright:#e4eed0;
   /* Status */
   --blue-acc:#388bfd;--green-acc:#4a8a3a;--warn-acc:#c8820a;--danger-acc:#f85149;
+  /* Semantic status colors (text-level) */
+  --od-good:#7ee787;--od-warn:#e3b341;--od-bad:#ffa198;
+  /* Alternating row background */
+  --bg-row-alt:#172116;
 }
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:500;}
 #app{display:contents;}

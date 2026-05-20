@@ -590,6 +590,7 @@
         {/if}
       </div>
       <table style="width:100%;border-collapse:collapse;">
+        <tbody>
         {#each plan.entries as entry}
           {@const isDown = entry.status === 'DOWN'}
           {@const isDeg  = entry.status === 'DEGRADED'}
@@ -619,6 +620,7 @@
             </td>
           </tr>
         {/each}
+        </tbody>
       </table>
     </div>
   {/each}
