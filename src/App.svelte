@@ -22,8 +22,8 @@
   let unitType     = 'M109A7';
   let unitCategory = 'Cannon (SP)';
   let tubes        = 18;
-  let truckQty   = 24;
-  let trailQty   = 24;
+  let truckQty   = 18;
+  let trailQty   = 18;
   let catQty     = 18;
   let hmmwvQty   = 18;
   let cclMode    = false;

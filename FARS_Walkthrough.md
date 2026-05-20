@@ -24,8 +24,8 @@ Configure the following — everything else updates in real time:
 | **Echelon** | Battalion |
 | **Unit Type** | M109A7 |
 | **Operational Tubes** | 17 *(1 NMC — reduces from default 18)* |
-| **PLS Trucks** | 24 |
-| **M1076 Trailers** | 24 |
+| **PLS Trucks** | 18 |
+| **M1076 Trailers** | 18 |
 | **M992A3 CATs** | 18 |
 | **Load Config** | Loose (160 rds/flatrack) |
 | **Planning Mode** | Manual (Detailed RSR) |

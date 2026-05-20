@@ -150,8 +150,8 @@
     if (echelon === 'Battalion') {
       tubes    = isCannon ? 18 : 27;
       catQty   = isM109  ? 18 : 0;
-      truckQty = isM119  ? 0  : isCannon ? 24 : 27;
-      trailQty = isM119  ? 0  : isCannon ? 24 : 27;
+      truckQty = isM119  ? 0  : isCannon ? 18 : 27;
+      trailQty = isM119  ? 0  : isCannon ? 18 : 27;
       hmmwvQty = isM119  ? 18 : 0;
     } else if (echelon === 'Battery') {
       tubes    = isCannon ? 6 : 9;
@@ -162,8 +162,8 @@
     } else {
       tubes    = isCannon ? 2 : 3;
       catQty   = isM109  ? 2  : 0;
-      truckQty = isM119  ? 0  : 2;
-      trailQty = isM119  ? 0  : 2;
+      truckQty = 0;
+      trailQty = 0;
       hmmwvQty = isM119  ? 2  : 0;
     }
   }
