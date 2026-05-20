@@ -55,7 +55,7 @@
   let customMunitions = []; // [{name, wt}] — user-defined rounds
 
   // — UI state —
-  let activeTab  = 2;
+  let activeTab  = 1;
   let sidebarOpen = false;
   let _initialized = false;
 
