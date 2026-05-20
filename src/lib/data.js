@@ -150,9 +150,9 @@ export const RSR_DEFAULTS = {
 };
 
 export const VEH_LBS = {
-  "M1075A1 PLS":   32250,
+  "M1075A1 PLS":   11670, // 86 complete rounds × 135.7 lbs (Army planning factor)
   "M1120 HEMTT LHS": 22000,
-  "M1076 Trailer": 32250,
+  "M1076 Trailer": 11670, // 86 complete rounds × 135.7 lbs (Army planning factor)
   "M1097 HMMWV":   2200,
 };
 

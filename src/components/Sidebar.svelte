@@ -348,7 +348,7 @@
         <input type="checkbox" id="cclMode" bind:checked={cclMode}>
         <label for="cclMode">Combat Configured Loads (CCL)</label>
       </div>
-      <div class="caption">Active: {cclMode ? '144 rds/flatrack (CCL)' : '160 rds/flatrack (Loose)'}</div>
+      <div class="caption">Planning factor: 86 complete rds/flatrack (Army rule of thumb)</div>
     </div>
     {/if}
   </div>

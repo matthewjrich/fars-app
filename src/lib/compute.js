@@ -5,7 +5,7 @@ export function computeValues(v, rsrValues, autoSync = true) {
   let haulLbs, totalRoundsCap, capacityVal, capacityLabel;
   let podsPerLauncher = 1, launcherPods = 0, flackPods = 0;
   const totalFlatracks = v.truckQty + v.trailQty;
-  const rPF = v.cclMode ? 144 : 160;
+  const rPF = 86; // Army planning rule of thumb — complete rounds (projectile + propellant + fuze) per PLS truck or trailer
 
   if (v.isM119) {
     const rdsPerHmmwv = Math.floor(VEH_LBS['M1097 HMMWV'] / 68.5);
@@ -17,7 +17,7 @@ export function computeValues(v, rsrValues, autoSync = true) {
     const pName = (v.isCannon || v.isMlrs) ? 'M1075A1 PLS' : 'M1120 HEMTT LHS';
     haulLbs = (v.truckQty * VEH_LBS[pName]) + (v.trailQty * VEH_LBS['M1076 Trailer']) + (v.catQty * 12000);
     if (v.isCannon) {
-      totalRoundsCap = (totalFlatracks * rPF) + (v.catQty * 95);
+      totalRoundsCap = (totalFlatracks * rPF) + (v.catQty * 95) + (v.isM109 ? v.tubes * 39 : 0);
       capacityVal = totalRoundsCap / 8;
       capacityLabel = "Total Lift (Pallet Eq.)";
     } else {

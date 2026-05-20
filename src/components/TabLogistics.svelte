@@ -49,18 +49,19 @@
 
   $: expanderBodyHtml = buildExpanderBody();
   function buildExpanderBody() {
-    const rPF = v.cclMode ? 144 : 160;
+    const rPF = 86;
     let html = '';
     if (v.isM119) {
-      const rph = Math.floor(2200 / 42);
+      const rph = Math.floor(2200 / 68.5);
       html += `▸ HMMWVs: ${v.hmmwvQty} × ~${rph} rds = <b style="color:var(--gold)">${fmt(v.hmmwvQty * rph)} rounds</b><br>`;
       html += `▸ Avg round weight: <b style="color:var(--gold)">~68.5 lbs</b> (complete 105mm round, IAW ATP 3-09.23)<br>`;
       html += `▸ Prime mover: M1097/M1152 HMMWV<br>`;
       html += `▸ FY24 CL IX rate (HMMWV): <b style="color:var(--gold)">$${VEH_COSTS["HMMWV (Series)"].clIX}/mile</b> · Round-trip: ${fmtD(c.distMiles, 1)} miles`;
     } else if (v.isCannon) {
-      html += `▸ Flatracks: ${v.truckQty + v.trailQty} × ${rPF} = <b style="color:var(--gold)">${fmt(c.totalFlatracks * rPF)} rounds</b><br>`;
+      html += `▸ Flatracks (PLS/trailer): ${v.truckQty + v.trailQty} × ${rPF} = <b style="color:var(--gold)">${fmt(c.totalFlatracks * rPF)} rounds</b><br>`;
       if (v.catQty > 0) html += `▸ CATs: ${v.catQty} × 95 = <b style="color:var(--gold)">${fmt(v.catQty * 95)} rounds</b><br>`;
-      html += `▸ Config: <b style="color:var(--gold)">${v.cclMode ? 'CCL' : 'Loose'}</b><br>`;
+      if (v.isM109) html += `▸ On-board (M109A7/A6): ${v.tubes} × 39 = <b style="color:var(--gold)">${fmt(v.tubes * 39)} rounds</b><br>`;
+      html += `▸ Planning factor: <b style="color:var(--gold)">86 complete rds/flatrack</b> (Army rule of thumb — projectile + propellant + fuze)<br>`;
       html += `▸ FY24 CL IX rate (PLS): <b style="color:var(--gold)">$${VEH_COSTS["PLS M1075 (Truck)"].clIX}/mile</b> · Round-trip: ${fmtD(c.distMiles, 1)} miles`;
     } else {
       const sys = v.isMlrs ? 'MLRS' : 'HIMARS';
