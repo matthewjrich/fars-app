@@ -214,14 +214,13 @@
 <div class="metric-grid">
   <div class="metric-card"><div class="metric-label">Total Weight (Lbs)</div><div class="metric-value">{fmt(c.haulLbs)}</div></div>
   <div class="metric-card"><div class="metric-label">Total Weight (STONS)</div><div class="metric-value">{fmtD(c.haulStons)}</div></div>
-  <div class="metric-card"><div class="metric-label">Total Round Capacity</div><div class="metric-value">{fmt(c.totalRoundsCap)}</div></div>
-  <div class="metric-card"><div class="metric-label">{c.capacityLabel}</div><div class="metric-value">{fmtD(c.capacityVal)}</div></div>
+  <div class="metric-card"><div class="metric-label">{c.capacityLabel}</div><div class="metric-value">{fmt(c.capacityVal)}</div></div>
 </div>
 
 <div class="section-title">{v.echelon} Mission Requirements (RSR)</div>
 <div class="metric-grid">
   <div class="metric-card"><div class="metric-label">Required Weight</div><div class="metric-value">{fmt(c.reqWeight)} lbs</div></div>
-  <div class="metric-card"><div class="metric-label">Requested {v.isM119 ? 'Rounds' : v.isCannon ? 'Pallets' : 'Pods'}</div><div class="metric-value">{fmt(c.totalItems)}</div></div>
+  <div class="metric-card"><div class="metric-label">Requested {v.isCannon ? 'Rounds' : 'Pods'}</div><div class="metric-value">{fmt(c.totalItems)}</div></div>
   <div class="metric-card"><div class="metric-label">Turnaround Time</div><div class="metric-value">{fmtD(c.totalTurnaround)} Hrs</div></div>
   <div class="metric-card"><div class="metric-label">Capacity Utilization</div><div class="metric-value">{fmtD(c.spatialUtil)}%</div></div>
 </div>
