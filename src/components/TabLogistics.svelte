@@ -54,7 +54,7 @@
     if (v.isM119) {
       const rph = Math.floor(2200 / 42);
       html += `▸ HMMWVs: ${v.hmmwvQty} × ~${rph} rds = <b style="color:var(--gold)">${fmt(v.hmmwvQty * rph)} rounds</b><br>`;
-      html += `▸ Avg round weight: <b style="color:var(--gold)">~42 lbs</b> (complete 105mm cartridge)<br>`;
+      html += `▸ Avg round weight: <b style="color:var(--gold)">~68.5 lbs</b> (complete 105mm round, IAW ATP 3-09.23)<br>`;
       html += `▸ Prime mover: M1097/M1152 HMMWV<br>`;
       html += `▸ FY24 CL IX rate (HMMWV): <b style="color:var(--gold)">$${VEH_COSTS["HMMWV (Series)"].clIX}/mile</b> · Round-trip: ${fmtD(c.distMiles, 1)} miles`;
     } else if (v.isCannon) {
@@ -117,10 +117,14 @@
   let docPhase  = 'first';
   let savedRsrValues = {};
 
-  $: docCaliber  = v.isM119 ? '105mm' : '155mm';
-  $: docRate     = RSR_DEFAULTS[docCaliber]?.[docOpType]?.[docLevel]?.[docPhase] ?? 0;
-  $: docTotal    = Math.round(docRate * (v.tubes || 0));
+  $: docCaliber   = v.isM119 ? '105mm' : '155mm';
+  $: docRate      = RSR_DEFAULTS[docCaliber]?.[docOpType]?.[docLevel]?.[docPhase] ?? 0;
+  $: docTotal     = Math.round(docRate * (v.tubes || 0));
   $: primaryHEKey = v.isM119 ? 'A064 M1 (HE)' : 'D529 M795 (HE)';
+
+  // Re-apply whenever selector state changes while the panel is active.
+  // Explicitly reference all inputs so Svelte tracks them as reactive dependencies.
+  $: if (useDoctrinalRsr && docCaliber && docOpType && docLevel && docPhase) applyDocDefaults();
 
   // Reset when unit type changes
   let _prevUnitType = '';
@@ -325,7 +329,7 @@
         <div class="doc-selectors">
           <div class="field" style="margin:0;">
             <label style="font-size:10px;">Operation Type</label>
-            <select bind:value={docOpType} on:change={applyDocDefaults} style="font-size:12px;padding:4px 6px;">
+            <select bind:value={docOpType} style="font-size:12px;padding:4px 6px;">
               <option>Covering Force</option>
               <option>Defense of Position</option>
               <option>Attack of Position</option>
@@ -333,7 +337,7 @@
           </div>
           <div class="field" style="margin:0;">
             <label style="font-size:10px;">Level</label>
-            <select bind:value={docLevel} on:change={applyDocDefaults} style="font-size:12px;padding:4px 6px;">
+            <select bind:value={docLevel} style="font-size:12px;padding:4px 6px;">
               <option>1-Heavy</option>
               <option>2-Moderate</option>
               <option>3-Light</option>
@@ -341,7 +345,7 @@
           </div>
           <div class="field" style="margin:0;">
             <label style="font-size:10px;">Day Phase</label>
-            <select bind:value={docPhase} on:change={applyDocDefaults} style="font-size:12px;padding:4px 6px;">
+            <select bind:value={docPhase} style="font-size:12px;padding:4px 6px;">
               <option value="first">First Day</option>
               <option value="succ">Succeeding Days (2–4)</option>
               <option value="prot">Protracted (6–15)</option>
