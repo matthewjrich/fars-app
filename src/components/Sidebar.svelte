@@ -40,6 +40,11 @@
     'Rocket':      'HIMARS',
   });
 
+  function onEchelonChange() {
+    onUnitTypeChange();
+    dispatch('unitchange');
+  }
+
   function onSystemChange() {
     onUnitTypeChange();
     dispatch('unitchange');
@@ -192,7 +197,7 @@
       <!-- Echelon -->
       <div class="field">
         <label>Echelon</label>
-        <select bind:value={echelon} on:change={onUnitTypeChange}>
+        <select bind:value={echelon} on:change={onEchelonChange}>
           <option>Battalion</option>
           <option>Battery</option>
           <option>Platoon</option>
