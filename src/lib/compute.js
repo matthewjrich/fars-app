@@ -49,7 +49,7 @@ export function computeValues(v, rsrValues, autoSync = true) {
       const mofa = autoSync ? Math.floor(sumRds * 0.1) : 0;
       const et = autoSync ? Math.floor(sumRds * 0.2) : 0;
       reqWeight = projWeight + (m231*43.2) + (m232*61.2) + (pgk*9.7) + (mofa*1.2) + (et*1.1);
-      totalItems = Math.ceil(sumRds / 8);
+      totalItems = sumRds;
       currentTotalRsr = sumRds / (v.tubes || 1);
     } else if (v.isM119) {
       sumRds = munKeys.reduce((a, k) => a + (rsrValues[k] || 0), 0);
@@ -102,7 +102,7 @@ export function computeValues(v, rsrValues, autoSync = true) {
     totalRunCost = v.hmmwvQty * distMiles * (hmmwvCost.clIX + (hmmwvCost.gal * DSL_PER_GAL));
   } else {
     const plsCost = VEH_COSTS["PLS M1075 (Truck)"];
-    totalRunCost = (v.truckQty + v.trailQty) * distMiles * (plsCost.clIX + (plsCost.gal * DSL_PER_GAL));
+    totalRunCost = v.truckQty * distMiles * (plsCost.clIX + (plsCost.gal * DSL_PER_GAL));
   }
   const dailyRunCost = runsPerDay * totalRunCost;
 
