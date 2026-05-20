@@ -18,8 +18,8 @@ export function computeValues(v, rsrValues, autoSync = true) {
     haulLbs = (v.truckQty * VEH_LBS[pName]) + (v.trailQty * VEH_LBS['M1076 Trailer']) + (v.catQty * 12000);
     if (v.isCannon) {
       totalRoundsCap = (totalFlatracks * rPF) + (v.catQty * 95) + (v.isM109 ? v.tubes * 39 : 0);
-      capacityVal = totalRoundsCap / 8;
-      capacityLabel = "Total Lift (Pallet Eq.)";
+      capacityVal = totalRoundsCap;
+      capacityLabel = "Total Rounds";
     } else {
       podsPerLauncher = v.isMlrs ? 2 : 1;
       launcherPods = v.tubes * podsPerLauncher;
