@@ -13,9 +13,41 @@
           data: [
             { what: 'RSR/CSR planning factors (Table 7-4) — rounds/weapon/day by operation type, intensity, and day phase', tabs: ['Logistics'] },
             { what: 'Complete-round planning weights: 155mm = 135.7 lbs/rd, 105mm = 68.5 lbs/rd (Table 7-4, fn 3)', tabs: ['Logistics', 'DODIC'] },
-            { what: 'Flat rack capacities: Loose = 160 rds, CCL = 144 rds (Table 7-2)', tabs: ['Logistics'] },
+            { what: 'Flat rack capacities: 160 rds loose / 144 rds CCL projectiles only (Table 7-2) — app uses Army planning rule of thumb of 86 complete rounds (projectile + propellant + fuze)', tabs: ['Logistics'] },
           ],
           note: 'Supersedes ATP 3-09.23 (2015). Current as of app build.',
+        },
+        {
+          pub:    'TC 3-09.81',
+          title:  'Field Artillery Cannon Gunnery',
+          date:   'Check current edition',
+          status: 'stale',
+          data: [
+            { what: 'Propellant charge planning factors — M231/M232 bags per round by zone (Auto-Sync ratios unverified)', tabs: ['Logistics'] },
+            { what: 'Fuze planning factors — PGK, MOFA, ET per round (Auto-Sync ratios unverified)', tabs: ['Logistics'] },
+          ],
+          note: 'WIP: Auto-sync charge and fuze ratios in the Logistics tab have not been verified against this publication. Update required before operational use.',
+        },
+        {
+          pub:    'ATP 3-09.70',
+          title:  'Paladin Operations',
+          date:   'Check current edition',
+          status: 'stale',
+          data: [
+            { what: 'M109A7/A6 propellant and fuze planning factors (may supplement TC 3-09.81)', tabs: ['Logistics'] },
+          ],
+          note: 'WIP: Verify Auto-Sync charge ratios against this publication for Paladin-specific planning factors.',
+        },
+        {
+          pub:    'TM 9-2350-314-10',
+          title:  'Operator Manual — M109A7 Paladin',
+          date:   'Check current edition',
+          status: 'stale',
+          data: [
+            { what: 'On-board stowage: 39 rounds per M109A7 (used in Total Rounds capacity)', tabs: ['Logistics'] },
+            { what: 'Propellant and ammunition handling procedures', tabs: ['Logistics'] },
+          ],
+          note: 'WIP: Confirm 39-round on-board stowage figure and verify any charge planning data against current edition.',
         },
         {
           pub:    'FM 3-09',

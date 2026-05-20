@@ -399,6 +399,9 @@
                 on:change={e => dispatch('autosyncchange', e.target.checked)}>
               <label for="autoSync">Auto-Sync Support Items</label>
             </div>
+            <div class="alert alert-warn" style="margin-top:6px;font-size:11px;">
+              ⚠️ <b>WIP:</b> Auto-sync charge ratios (M231/M232/PGK/MOFA/ET) have not been verified against TC 3-09.81 or ATP 3-09.70. Verify before operational use.
+            </div>
           {/if}
         </div>
       {/each}
