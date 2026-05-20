@@ -15,6 +15,7 @@
   import TabTaskOrg from './components/TabTaskOrg.svelte';
   import TabReadiness from './components/TabReadiness.svelte';
   import TabNotes from './components/TabNotes.svelte';
+  import TabDoctrine from './components/TabDoctrine.svelte';
 
   // — Config state (sidebar inputs) —
   let echelon      = 'Battalion';
@@ -261,6 +262,7 @@
           <button class="tab" class:active={activeTab===9}  on:click={() => setActiveTab(9)}>EFC</button>
           <button class="tab" class:active={activeTab===10} on:click={() => setActiveTab(10)}>Export</button>
           <button class="tab" class:active={activeTab===11} on:click={() => setActiveTab(11)}>Notes</button>
+          <button class="tab" class:active={activeTab===12} on:click={() => setActiveTab(12)}>References</button>
         </div>
       </div>
 
@@ -295,6 +297,8 @@
           <TabExport {config} {computed} {rsrValues} {csrByRound} />
         {:else if activeTab === 11}
           <TabNotes />
+        {:else if activeTab === 12}
+          <TabDoctrine />
         {/if}
       </div>
     </div>
