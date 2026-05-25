@@ -66,8 +66,8 @@ Default vehicle counts by echelon (M109 series):
 #### 4. Planning Mode
 | Mode | Description |
 |---|---|
-| **Manual (Detailed RSR)** | Enter exact round quantities per munition type in the Logistics tab |
-| **Daily Load %** | Set a percentage of total haul capacity — useful for quick estimates |
+| **Detailed RSR** | Enter exact round quantities per munition type in the Logistics tab |
+| **Quick Estimate (Load %)** | Set a percentage of total haul capacity — useful for bulk estimates without a per-round breakdown |
 
 #### 5. CSR Management
 | Mode | Description |

@@ -344,8 +344,8 @@
     {#if open.plan}
     <div class="acc-body">
       <div class="radio-group">
-        <label><input type="radio" name="planMode" value="manual" bind:group={planMode}> Manual (Detailed RSR)</label>
-        <label><input type="radio" name="planMode" value="daily"  bind:group={planMode}> Daily Load % (Excel Mode)</label>
+        <label><input type="radio" name="planMode" value="manual" bind:group={planMode}> Detailed RSR</label>
+        <label><input type="radio" name="planMode" value="daily"  bind:group={planMode}> Quick Estimate (Load %)</label>
       </div>
       {#if planMode === 'daily'}
         <div class="field">
