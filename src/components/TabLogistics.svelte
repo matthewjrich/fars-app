@@ -15,6 +15,11 @@
   const dispatch = createEventDispatcher();
 
   let expanderOpen = false;
+  let infoOpen = {};
+  function toggleInfo(k, e) { e.stopPropagation(); infoOpen = { ...infoOpen, [k]: !infoOpen[k] }; }
+  const INFO = {
+    breakdown: 'Shows step-by-step haul capacity math: vehicle counts, rounds per flatrack/CAT, on-board capacity (M109 only), and FY24 CL IX cost per mile. For Composite units, shows each system\'s contribution separately. Use to verify the model matches your actual vehicle plan before mission execution.',
+  };
 
   $: v = config;
   $: c = computed;
@@ -51,6 +56,28 @@
   function buildExpanderBody() {
     const rPF = 86;
     let html = '';
+    if (v.unitCategory === 'Composite' && compositeGroups.length > 0) {
+      html += `<b style="color:var(--gold)">Composite Load Configuration:</b><br><br>`;
+      for (const grp of compositeGroups) {
+        if (grp.unitType.includes('M109')) {
+          const onBoard = grp.tubes * 39;
+          html += `▸ ${grp.unitType} on-board: ${grp.tubes} × 39 = <b style="color:var(--gold)">${fmt(onBoard)} rds</b><br>`;
+        } else if (grp.unitType.includes('M777')) {
+          html += `▸ ${grp.unitType}: ${grp.tubes} tubes (haul-fed, no on-board storage)<br>`;
+        } else if (grp.unitType === 'M119A3') {
+          html += `▸ ${grp.unitType}: ${grp.tubes} tubes (HMMWV-fed lift)<br>`;
+        } else {
+          html += `▸ ${grp.unitType}: ${grp.tubes} launchers<br>`;
+        }
+      }
+      if (v.truckQty > 0 || v.trailQty > 0)
+        html += `▸ Flatracks (PLS+trailer): ${v.truckQty + v.trailQty} × ${rPF} = <b style="color:var(--gold)">${fmt((v.truckQty + v.trailQty) * rPF)} rds</b><br>`;
+      if (v.catQty > 0)
+        html += `▸ CATs: ${v.catQty} × 95 = <b style="color:var(--gold)">${fmt(v.catQty * 95)} rds</b><br>`;
+      html += `▸ Planning factor: <b style="color:var(--gold)">86 complete rds/flatrack</b> (Army rule of thumb)<br>`;
+      html += `▸ FY24 CL IX rate (PLS): <b style="color:var(--gold)">$${VEH_COSTS["PLS M1075 (Truck)"].clIX}/mile</b> · Round-trip: ${fmtD(c.distMiles, 1)} miles`;
+      return html;
+    }
     if (v.isM119) {
       const rph = Math.floor(2200 / 68.5);
       html += `▸ HMMWVs: ${v.hmmwvQty} × ~${rph} rds = <b style="color:var(--gold)">${fmt(v.hmmwvQty * rph)} rounds</b><br>`;
@@ -236,8 +263,12 @@
 <div class="expander">
   <div class="expander-header" on:click={() => expanderOpen = !expanderOpen}>
     <span>📋 Load Configuration &amp; Cost Breakdown</span>
+    <button class="info-btn" on:click={e => toggleInfo('breakdown', e)}>ⓘ</button>
     <span>{expanderOpen ? '▲' : '▼'}</span>
   </div>
+  {#if infoOpen.breakdown}
+    <div class="info-popover" style="margin:0;border-top:none;border-radius:0;">{INFO.breakdown}</div>
+  {/if}
   {#if expanderOpen}
     <div class="expander-body">{@html expanderBodyHtml}</div>
   {/if}
@@ -494,7 +525,7 @@
       <tr><th>Vehicle</th><th>Role</th><th>Qty</th><th>MLC (W)</th><th>MLC (T)</th><th>Type</th></tr>
     </thead>
     <tbody>
-      {#each mlcRows as row}
+      {#each mlcRows.filter(r => r.qty > 0) as row}
         <tr>
           <td style="font-size:12px;">{row.name}</td>
           <td style="font-size:11px;color:var(--text-dim);">{row.role}</td>

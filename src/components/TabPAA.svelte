@@ -44,8 +44,16 @@
   });
 
   // Q-D Arc Calculator state
-  let qdOpen = false;
-  let qdMun = '';
+  let newOpen = false;
+  let qdOpen  = false;
+  let qdMun   = '';
+  let infoOpen = {};
+  function toggleInfo(k, e) { e.stopPropagation(); infoOpen = { ...infoOpen, [k]: !infoOpen[k] }; }
+
+  const INFO = {
+    new: 'Net Explosive Weight (NEW) is the explosive content per round or pod in pounds, used to calculate quantity-distance (Q-D) separation arcs for storage and handling under DA Pam 385-64. NEW drives how far a magazine or storage point must be from inhabited buildings, roads, and other munition stacks.',
+    qd:  'Quantity-Distance (Q-D) arcs define minimum separation distances based on hazard division and total NEW. IBD = Inhabited Building Distance. PTR = Public Traffic Route. ILD = Intraline Distance (between storage points). Formula: D = K × NEW^(1/3). Verify with installation safety officer before site selection.',
+  };
   let qdQty = 1;
 
   $: qdOptions = newRows.map(([k]) => k);
@@ -124,33 +132,47 @@
   <div class="alert alert-success">✅ Rounds fit within gun line storage capacity.</div>
 {/if}
 
-<!-- NEW Reference Table -->
-<div class="section-title" style="margin-top:20px;">Net Explosive Weight (NEW) Reference</div>
-<p style="font-size:12px;color:var(--text-dim);margin-bottom:12px;">NEW values per round/pod — used for explosive site plan, Q-D arcs, and storage calculations (DA Pam 385-64).</p>
-<table class="data-table">
-  <thead>
-    <tr><th>Munition Type</th><th>NEW (lbs)</th><th>Notes</th></tr>
-  </thead>
-  <tbody>
-    {#each newRows as [name, wt]}
-      <tr>
-        <td>{name}</td>
-        <td style="color:var(--gold);font-family:'Share Tech',sans-serif;">{wt}</td>
-        <td style="font-size:11px;color:var(--text-dim);">lbs NEW per unit</td>
-      </tr>
-    {/each}
-  </tbody>
-</table>
-
-<div class="alert alert-info" style="margin-top:16px;">
-  ℹ️ <b>Storage Note:</b> Q-D arcs and compatible groups determine physical separation requirements. Consult DA Pam 385-64 and installation SOP for magazine construction standards. CCL configuration reduces handling time but does not change Q-D requirements.
+<div class="expander" style="margin-top:16px;">
+  <div class="expander-header" on:click={() => newOpen = !newOpen}>
+    <span>Net Explosive Weight (NEW) Reference</span>
+    <button class="info-btn" on:click={e => toggleInfo('new', e)}>ⓘ</button>
+    <span>{newOpen ? '▲' : '▼'}</span>
+  </div>
+  {#if infoOpen.new}
+    <div class="info-popover" style="margin:0;border-top:none;border-radius:0;">{INFO.new}</div>
+  {/if}
+  {#if newOpen}
+  <div class="expander-body" style="padding:0;">
+    <table class="data-table" style="margin:0;border-radius:0;">
+      <thead>
+        <tr><th>Munition Type</th><th>NEW (lbs)</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        {#each newRows as [name, wt]}
+          <tr>
+            <td>{name}</td>
+            <td style="color:var(--gold);font-family:'Share Tech',sans-serif;">{wt}</td>
+            <td style="font-size:11px;color:var(--text-dim);">lbs NEW per unit</td>
+          </tr>
+        {/each}
+      </tbody>
+    </table>
+    <div style="padding:8px 14px;font-size:11px;color:var(--text-dim);">
+      Q-D arcs and compatible groups determine physical separation requirements. Consult DA Pam 385-64 and installation SOP for magazine construction standards.
+    </div>
+  </div>
+  {/if}
 </div>
 
-<div class="expander" style="margin-top:16px;">
+<div class="expander" style="margin-top:8px;">
   <div class="expander-header" on:click={() => qdOpen = !qdOpen}>
     <span>Q-D Arc Calculator — DA Pam 385-64</span>
+    <button class="info-btn" on:click={e => toggleInfo('qd', e)}>ⓘ</button>
     <span>{qdOpen ? '▲' : '▼'}</span>
   </div>
+  {#if infoOpen.qd}
+    <div class="info-popover" style="margin:0;border-top:none;border-radius:0;">{INFO.qd}</div>
+  {/if}
   {#if qdOpen}
   <div class="expander-body">
     <p style="font-size:12px;color:var(--text-dim);margin-bottom:14px;">

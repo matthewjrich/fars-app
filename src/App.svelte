@@ -16,6 +16,7 @@
   import TabReadiness from './components/TabReadiness.svelte';
   import TabNotes from './components/TabNotes.svelte';
   import TabDoctrine from './components/TabDoctrine.svelte';
+  import TabSitrep  from './components/TabSitrep.svelte';
 
   // — Config state (sidebar inputs) —
   let echelon      = 'Battalion';
@@ -244,6 +245,8 @@
       <!-- Two-tier tab bar (no page header) -->
       <div class="tabs-wrap">
         <div class="tabs-primary">
+          <button class="tab" class:active={activeTab===13} on:click={() => setActiveTab(13)}
+            style="{activeTab===13 ? '' : 'color:var(--gold);'}">SITREP</button>
           <button class="tab" class:active={activeTab===1}  on:click={() => setActiveTab(1)}>
             Task Org{#if $nmcCount > 0}<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#f85149;margin-left:6px;vertical-align:middle;flex-shrink:0;" title="NMC equipment logged"></span>{/if}{#if $paceDown > 0}<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#e3b341;margin-left:4px;vertical-align:middle;flex-shrink:0;" title="PACE tier down"></span>{/if}
           </button>
@@ -300,7 +303,9 @@
       {/if}
 
       <div class="tab-content" style="overflow-y:auto;flex:1;">
-        {#if activeTab === 1}
+        {#if activeTab === 13}
+          <TabSitrep {config} {computed} {rsrValues} {csrByRound} {munKeys} />
+        {:else if activeTab === 1}
           <TabTaskOrg {config} />
         {:else if activeTab === 2}
           <TabLogistics
@@ -323,7 +328,7 @@
         {:else if activeTab === 7}
           <TabCost {config} />
         {:else if activeTab === 8}
-          <TabDodic />
+          <TabDodic {config} />
         {:else if activeTab === 9}
           <TabEfc {config} />
         {:else if activeTab === 10}

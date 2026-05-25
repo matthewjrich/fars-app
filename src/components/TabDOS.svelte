@@ -26,6 +26,22 @@
 
   let breakdownOpen = false;
   let forecastOpen  = false;
+  let lossOpen      = false;
+  let infoOpen      = {};
+
+  // Loss impact calculator
+  let lossSimTrucks = 0;
+  $: lossSimFlatracks    = Math.max(0, c.totalFlatracks - lossSimTrucks);
+  $: lossSimRoundsPerRun = lossSimFlatracks * 86 + (v.catQty || 0) * 95;
+  $: lossSimDailyLiftCap = lossSimRoundsPerRun * c.runsPerDay;
+  $: lossSimSurplus      = lossSimDailyLiftCap - Math.round(c.dailyUsage);
+  $: lossSimShortfall    = lossSimSurplus < 0;
+  function toggleInfo(k, e) { e.stopPropagation(); infoOpen = { ...infoOpen, [k]: !infoOpen[k] }; }
+
+  const INFO = {
+    breakdown: 'Shows the step-by-step math behind the resupply calculation: turnaround time (distance ÷ speed + load time), runs possible per planning day, and rounds per run based on flatracks and CATs. Use this to verify the model matches your actual route and vehicle plan.',
+    forecast:  'Projects daily and cumulative ammunition consumption, truck runs, lift weight (short tons), and estimated cost over a planning horizon of up to 30 days. Each row assumes a constant firing rate at the current CSR setting. Shortfall days indicate organic lift cannot sustain the firing rate — augmentation or reduced tempo required.',
+  };
   let forecastDays  = 5;
 
   $: avgRdWt = v.isM119 ? 42 : v.isCannon ? 108 : 5111;
@@ -123,8 +139,12 @@
 <div class="expander">
   <div class="expander-header" on:click={() => breakdownOpen = !breakdownOpen}>
     <span>📋 Resupply Math Breakdown</span>
+    <button class="info-btn" on:click={e => toggleInfo('breakdown', e)}>ⓘ</button>
     <span>{breakdownOpen ? '▲' : '▼'}</span>
   </div>
+  {#if infoOpen.breakdown}
+    <div class="info-popover" style="margin:0;border-top:none;border-radius:0;">{INFO.breakdown}</div>
+  {/if}
   {#if breakdownOpen}
     <div class="expander-body">
       <b style="color:var(--gold)">Resupply Calculation:</b><br><br>
@@ -136,11 +156,69 @@
   {/if}
 </div>
 
+{#if v.isCannon}
+<div class="expander" style="margin-top:8px;">
+  <div class="expander-header" on:click={() => lossOpen = !lossOpen}>
+    <span>🚛 Loss Impact Calculator</span>
+    <span>{lossOpen ? '▲' : '▼'}</span>
+  </div>
+  {#if lossOpen}
+  <div class="expander-body">
+    <p style="font-size:12px;color:var(--text-dim);margin-bottom:14px;">
+      Model the effect of losing or deadlining haul trucks. Simulates reduced flatrack capacity while keeping run count and firing rate constant.
+    </p>
+    <div style="display:flex;align-items:flex-end;gap:20px;margin-bottom:16px;flex-wrap:wrap;">
+      <div class="field" style="margin:0;max-width:200px;">
+        <label>PLS Trucks Lost / Deadlined</label>
+        <input type="number" bind:value={lossSimTrucks} min="0" max={v.truckQty}>
+      </div>
+      <div style="font-size:12px;color:var(--text-dim);padding-bottom:8px;">
+        Base: {v.truckQty} PLS + {v.trailQty} trailers = {c.totalFlatracks} flatracks
+        &rarr; sim: {lossSimFlatracks} flatracks remaining
+      </div>
+    </div>
+    <div class="metric-grid" style="grid-template-columns:repeat(3,1fr);">
+      <div class="metric-card">
+        <div class="metric-label">Sim Rounds / Run</div>
+        <div class="metric-value">{fmt(lossSimRoundsPerRun)}</div>
+        <div class="metric-sub">was {fmt(c.roundsPerRun)}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Sim Daily Lift Cap</div>
+        <div class="metric-value">{fmt(lossSimDailyLiftCap)} rds</div>
+        <div class="metric-sub">was {fmt(c.dailyLiftCap)}</div>
+      </div>
+      <div class="metric-card {lossSimShortfall ? 'danger' : 'green'}">
+        <div class="metric-label">Sim Surplus / Deficit</div>
+        <div class="metric-value">{lossSimSurplus >= 0 ? '+' : ''}{fmt(lossSimSurplus)} rds</div>
+        <div class="metric-sub">{lossSimShortfall ? 'SHORTFALL' : 'Sufficient'}</div>
+      </div>
+    </div>
+    {#if lossSimTrucks > 0}
+      {#if lossSimShortfall}
+        <div class="alert alert-error" style="margin-top:8px;">
+          ⚠️ With {lossSimTrucks} truck{lossSimTrucks !== 1 ? 's' : ''} lost, daily lift ({fmt(lossSimDailyLiftCap)} rds) falls {fmt(Math.abs(lossSimSurplus))} rds short of daily usage ({fmt(Math.round(c.dailyUsage))} rds). Augmentation required.
+        </div>
+      {:else}
+        <div class="alert alert-success" style="margin-top:8px;">
+          ✅ With {lossSimTrucks} truck{lossSimTrucks !== 1 ? 's' : ''} lost, organic lift still sustains the current firing rate.
+        </div>
+      {/if}
+    {/if}
+  </div>
+  {/if}
+</div>
+{/if}
+
 <div class="expander" style="margin-top:8px;">
   <div class="expander-header" on:click={() => forecastOpen = !forecastOpen}>
     <span>📈 N-Day Ammo Projection</span>
+    <button class="info-btn" on:click={e => toggleInfo('forecast', e)}>ⓘ</button>
     <span>{forecastOpen ? '▲' : '▼'}</span>
   </div>
+  {#if infoOpen.forecast}
+    <div class="info-popover" style="margin:0;border-top:none;border-radius:0;">{INFO.forecast}</div>
+  {/if}
   {#if forecastOpen}
     <div class="expander-body" style="padding:0;">
       <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:20px;flex-wrap:wrap;">

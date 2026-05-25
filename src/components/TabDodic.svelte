@@ -1,9 +1,18 @@
 <script>
+  import { onMount } from 'svelte';
   import { ALL_DODIC } from '../lib/data.js';
+
+  export let config = null;
 
   const TYPES = ['all', '155mm', '105mm', 'rockets', 'charges', 'fuzes'];
   let activeFilter = 'all';
   let searchText = '';
+
+  onMount(() => {
+    if (config) {
+      activeFilter = config.isM119 ? '105mm' : config.isCannon ? '155mm' : 'rockets';
+    }
+  });
 
   $: filtered = Object.entries(ALL_DODIC).filter(([name, d]) => {
     const matchType = activeFilter === 'all' || d.type === activeFilter;

@@ -42,7 +42,16 @@
     ],
   };
 
-  $: rofRef    = ROF_REF[v.unitType] || null;
+  $: rofRef = !v.isCannon
+    ? {
+        burst:      v.isMlrs ? '12 rkts / 60 sec' : '6 rkts / 45 sec',
+        sustained:  'Reload-limited',
+        note:       `${v.isMlrs ? '2 pods' : '1 pod'} per launcher · ${v.reloadTime} min reload`,
+        reloadMin:  v.reloadTime,
+        podsPerHr:  +(60 / v.reloadTime).toFixed(1),
+        rktsPerHr:  Math.round(60 / v.reloadTime * (v.isMlrs ? 12 : 6)),
+      }
+    : (ROF_REF[v.unitType] || null);
   $: rangeRows = v.isM119 ? RANGE_REF.cannon105 : v.isCannon ? RANGE_REF.cannon155 : RANGE_REF.rockets;
   let refOpen  = false;
 
@@ -163,6 +172,15 @@
   let dcOpen = false;
   $: dcStatus = dcDist == null ? null : dcDist <= dcRef.dist ? 'DANGER CLOSE' : 'CLEAR';
 
+  let infoOpen = {};
+  function toggleInfo(k, e) { e.stopPropagation(); infoOpen = { ...infoOpen, [k]: !infoOpen[k] }; }
+
+  const INFO = {
+    dc:   'Danger Close applies when friendly troops are within the established minimum safe distance of the target. Standard distances: 600 m (cannon), 750 m (rockets). Precision-guided munitions (Excalibur, GMLRS unitary) have reduced DC distances of 200 m. DC must be announced with the fire mission and requires commander authorization.',
+    rof:  'Rate of Fire data from current TM/TC series. Burst rate is maximum sustainable for 2 minutes before barrel cooling is required. For rocket systems, sustained rate is reload-limited — the reload time configured in the sidebar drives the Pods/Hour calculation shown here.',
+    fuze: 'Shell-fuze combinations authorized per TM 43-0001-28 series. Combinations not listed are not authorized. PD = Point Detonating. VT = Variable Time (proximity). MT = Mechanical Time. CVT = Controlled Variable Time. ★ = preferred fuze for general-purpose fire missions.',
+  };
+
   $: ul = v.isCannon ? 'Rounds' : 'Pods';
   $: docTubes = v.echelon === 'Battalion' ? (v.isCannon ? 18 : 27)
               : v.echelon === 'Battery'   ? (v.isCannon ? 6 : 9)
@@ -247,8 +265,12 @@
 <div class="expander" style="margin-top:16px;">
   <div class="expander-header" on:click={() => dcOpen = !dcOpen}>
     <span>Danger Close Criteria</span>
+    <button class="info-btn" on:click={e => toggleInfo('dc', e)}>ⓘ</button>
     <span>{dcOpen ? '▲' : '▼'}</span>
   </div>
+  {#if infoOpen.dc}
+    <div class="info-popover" style="margin:0;border-top:none;border-radius:0;">{INFO.dc}</div>
+  {/if}
   {#if dcOpen}
   <div class="expander-body" style="padding:0;">
     <div style="padding:14px;border-bottom:1px solid var(--border);">
@@ -296,14 +318,18 @@
 <div class="expander" style="margin-top:8px;">
   <div class="expander-header" on:click={() => refOpen = !refOpen}>
     <span>Quick Reference — Rate of Fire &amp; Ranges</span>
+    <button class="info-btn" on:click={e => toggleInfo('rof', e)}>ⓘ</button>
     <span>{refOpen ? '▲' : '▼'}</span>
   </div>
+  {#if infoOpen.rof}
+    <div class="info-popover" style="margin:0;border-top:none;border-radius:0;">{INFO.rof}</div>
+  {/if}
   {#if refOpen}
   <div class="expander-body" style="padding:0;">
     {#if rofRef}
     <div style="padding:12px 14px;border-bottom:1px solid var(--border);">
       <div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;font-weight:700;letter-spacing:0.8px;margin-bottom:10px;">Rate of Fire — {v.unitType}</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div style="display:grid;grid-template-columns:{!v.isCannon ? '1fr 1fr 1fr' : '1fr 1fr'};gap:8px;">
         <div class="metric-card" style="margin-bottom:0;">
           <div class="metric-label">Burst Rate</div>
           <div class="metric-value" style="font-size:15px;">{rofRef.burst}</div>
@@ -312,7 +338,15 @@
         <div class="metric-card" style="margin-bottom:0;">
           <div class="metric-label">Sustained Rate</div>
           <div class="metric-value" style="font-size:15px;">{rofRef.sustained}</div>
+          {#if !v.isCannon}<div class="metric-sub">Reload: {rofRef.reloadMin} min / pod</div>{/if}
         </div>
+        {#if !v.isCannon}
+        <div class="metric-card" style="margin-bottom:0;">
+          <div class="metric-label">Pods / Hr per Launcher</div>
+          <div class="metric-value" style="font-size:15px;">{rofRef.podsPerHr}</div>
+          <div class="metric-sub">{rofRef.rktsPerHr} rockets / hr</div>
+        </div>
+        {/if}
       </div>
     </div>
     {/if}
@@ -348,8 +382,12 @@
 <div class="expander" style="margin-top:8px;">
   <div class="expander-header" on:click={() => fuzeOpen = !fuzeOpen}>
     <span>Shell-Fuze Combinations</span>
+    <button class="info-btn" on:click={e => toggleInfo('fuze', e)}>ⓘ</button>
     <span>{fuzeOpen ? '▲' : '▼'}</span>
   </div>
+  {#if infoOpen.fuze}
+    <div class="info-popover" style="margin:0;border-top:none;border-radius:0;">{INFO.fuze}</div>
+  {/if}
   {#if fuzeOpen}
   <div class="expander-body" style="padding:0;">
     <div class="alert alert-warn" style="margin:12px 14px 0;font-size:12px;line-height:1.5;">

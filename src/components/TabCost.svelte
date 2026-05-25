@@ -50,6 +50,18 @@
   let clOpen = { cl1: true, cl2: false, cl3b: true, cl3p: false, cl4: false, cl8: false };
   function toggleCl(k) { clOpen = { ...clOpen, [k]: !clOpen[k] }; }
 
+  let infoOpen = {};
+  function toggleInfo(k, e) { e.stopPropagation(); infoOpen = { ...infoOpen, [k]: !infoOpen[k] }; }
+
+  const INFO = {
+    cl1:  'Class I (Subsistence) covers all food and water consumed during the event. Rates per meal per person per day — MRE, UGR, Jungle Dish. Water at $6.00/case. Total cost = rate × PAX × event days.',
+    cl2:  'Class II (Clothing, Individual Equipment, Tools) — flat per-soldier estimate for the event. Equipment rate covers issued OCIE. POPO covers unit-level miscellaneous procurement not captured elsewhere.',
+    cl3b: 'Class III(B) is bulk fuel; CL IX is repair parts. Both computed from vehicle count × miles × FY24 OSMIS rate per mile. Set qty to zero for vehicles not participating in the event.',
+    cl3p: 'Class III(P) covers packaged petroleum, oils, and lubricants (POL): greases, hydraulic fluid, specialty lubricants, and cleaning solvents not distributed through bulk fuel accounts.',
+    cl4:  'Class IV (Construction / Barrier Material) covers survivability and defensive position materials: concertina wire, HESCO bastion equivalents, sandbags, and other engineer barrier items.',
+    cl8:  'Class VIII (Medical Material) estimated at a flat per-soldier rate. Covers medical supplies, pharmaceuticals, and equipment consumed or expended during the training event.',
+  };
+
   // ── Computed totals ──
   $: cl1Total = (cl1Mre * MRE_COST + cl1Ugr * UGR_COST + cl1Jd * JD_COST + cl1Water * WATER_CASE_COST) * evtPax * evtDays;
 
@@ -185,8 +197,12 @@
 <div class="expander">
   <div class="expander-header" on:click={() => toggleCl('cl1')}>
     <span>CL I — Subsistence &nbsp;<span style="color:var(--text-dim);font-weight:400;font-size:12px;">{fmtCurrency(cl1Total)}</span></span>
+    <button class="info-btn" on:click={e => toggleInfo('cl1', e)}>ⓘ</button>
     <span>{clOpen.cl1 ? '▲' : '▼'}</span>
   </div>
+  {#if infoOpen.cl1}
+    <div class="info-popover" style="margin:0;border-top:none;border-radius:0;">{INFO.cl1}</div>
+  {/if}
   {#if clOpen.cl1}
   <div class="expander-body">
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
@@ -219,8 +235,12 @@
 <div class="expander">
   <div class="expander-header" on:click={() => toggleCl('cl2')}>
     <span>CL II — Clothing &amp; Equipment &nbsp;<span style="color:var(--text-dim);font-weight:400;font-size:12px;">{fmtCurrency(cl2Total)}</span></span>
+    <button class="info-btn" on:click={e => toggleInfo('cl2', e)}>ⓘ</button>
     <span>{clOpen.cl2 ? '▲' : '▼'}</span>
   </div>
+  {#if infoOpen.cl2}
+    <div class="info-popover" style="margin:0;border-top:none;border-radius:0;">{INFO.cl2}</div>
+  {/if}
   {#if clOpen.cl2}
   <div class="expander-body">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
@@ -243,8 +263,12 @@
 <div class="expander">
   <div class="expander-header" on:click={() => toggleCl('cl3b')}>
     <span>CL III(B) Fuel &amp; CL IX Parts &nbsp;<span style="color:var(--text-dim);font-weight:400;font-size:12px;">{fmtCurrency(cl3bTotal + clIXTotal)}</span></span>
+    <button class="info-btn" on:click={e => toggleInfo('cl3b', e)}>ⓘ</button>
     <span>{clOpen.cl3b ? '▲' : '▼'}</span>
   </div>
+  {#if infoOpen.cl3b}
+    <div class="info-popover" style="margin:0;border-top:none;border-radius:0;">{INFO.cl3b}</div>
+  {/if}
   {#if clOpen.cl3b}
   <div class="expander-body" style="padding:0;">
     <div style="overflow-x:auto;">
@@ -280,8 +304,12 @@
 <div class="expander">
   <div class="expander-header" on:click={() => toggleCl('cl3p')}>
     <span>CL III(P) — Packaged POL &nbsp;<span style="color:var(--text-dim);font-weight:400;font-size:12px;">{fmtCurrency(cl3pTotal)}</span></span>
+    <button class="info-btn" on:click={e => toggleInfo('cl3p', e)}>ⓘ</button>
     <span>{clOpen.cl3p ? '▲' : '▼'}</span>
   </div>
+  {#if infoOpen.cl3p}
+    <div class="info-popover" style="margin:0;border-top:none;border-radius:0;">{INFO.cl3p}</div>
+  {/if}
   {#if clOpen.cl3p}
   <div class="expander-body">
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
@@ -302,8 +330,12 @@
 <div class="expander">
   <div class="expander-header" on:click={() => toggleCl('cl4')}>
     <span>CL IV — Construction Material &nbsp;<span style="color:var(--text-dim);font-weight:400;font-size:12px;">{fmtCurrency(cl4Total)}</span></span>
+    <button class="info-btn" on:click={e => toggleInfo('cl4', e)}>ⓘ</button>
     <span>{clOpen.cl4 ? '▲' : '▼'}</span>
   </div>
+  {#if infoOpen.cl4}
+    <div class="info-popover" style="margin:0;border-top:none;border-radius:0;">{INFO.cl4}</div>
+  {/if}
   {#if clOpen.cl4}
   <div class="expander-body">
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
@@ -331,8 +363,12 @@
 <div class="expander">
   <div class="expander-header" on:click={() => toggleCl('cl8')}>
     <span>CL VIII — Medical Material &nbsp;<span style="color:var(--text-dim);font-weight:400;font-size:12px;">{fmtCurrency(cl8Total)}</span></span>
+    <button class="info-btn" on:click={e => toggleInfo('cl8', e)}>ⓘ</button>
     <span>{clOpen.cl8 ? '▲' : '▼'}</span>
   </div>
+  {#if infoOpen.cl8}
+    <div class="info-popover" style="margin:0;border-top:none;border-radius:0;">{INFO.cl8}</div>
+  {/if}
   {#if clOpen.cl8}
   <div class="expander-body">
     <div class="field" style="max-width:300px;">
