@@ -1,6 +1,6 @@
 # FARS — Field Artillery Resource Sync
 ## User Manual
-**Version:** 2.3 | **Updated:** May 2026 | **Cost Factors:** OSMIS FY24 | **Classification:** UNCLASSIFIED // FOR OFFICIAL USE ONLY
+**Version:** 2.4 | **Updated:** May 2026 | **Cost Factors:** OSMIS FY24 | **Classification:** UNCLASSIFIED // FOR OFFICIAL USE ONLY
 
 ---
 
@@ -15,6 +15,7 @@ FARS (Field Artillery Resource Sync) is a browser-based planning and situational
 - Barrel life tracking (EFC)
 - Training event cost estimation
 - LOGSTAT generation and export
+- Commander's SITREP brief (AMMSTAT, PERSTAT, MAINTSTAT, barrel wear — consolidated)
 
 All inputs persist automatically in the browser. No login, no save button. Data survives tab switches and page refreshes.
 
@@ -106,6 +107,59 @@ Default vehicle counts by echelon (M109 series):
 ---
 
 ## Primary Tabs
+
+### SITREP Tab *(gold — first in primary row)*
+
+**Purpose:** Single-screen commander's brief — consolidates all key status data for rapid situation reporting to the battalion commander or higher.
+
+The SITREP tab is always accessible via the gold **SITREP** button at the far left of the primary tab row.
+
+#### Header
+Enter your **unit designation** (e.g., `1-14 FA BN`) in the editable field. The DTG displays automatically; click **↻ Update DTG** to refresh to current local time.
+
+#### BLUF Alerts
+Automatically generated from live data across all tabs. Alerts are separated by severity:
+- **Critical (red):** Resupply shortfall, <1 DOS, CRITICAL ammo (<25% of CSR), 3+ vehicles NMC, barrel replacement required
+- **Advisory (amber):** <3 DOS, LOW ammo (25–50% of CSR), CSR violations, vehicles NMC, barrel CAUTION
+
+If no alerts exist, a green **NO CRITICAL ALERTS** banner displays.
+
+#### Ammunition Status Card
+| Field | Description |
+|---|---|
+| **DOS** | Days of supply at current rate — color coded green/amber/red |
+| **On Hand** | Total rounds/pods |
+| **Cap Used** | Haul capacity utilization % |
+| **By type** | Each munition with rounds, AMMSTAT level, and % of CSR bar |
+
+**AMMSTAT levels:**
+| Level | Threshold |
+|---|---|
+| **FULL** | ≥ 100% of authorized CSR |
+| **ADEQ** | 60–99% of authorized CSR |
+| **LOW** | 25–59% of authorized CSR |
+| **CRIT** | < 25% of authorized CSR |
+
+AMMSTAT levels only appear when a CSR is set for that round type in the Logistics tab.
+
+#### Logistics / Resupply Card
+Shows runs possible vs. runs needed per day, turnaround time, daily lift cap, daily usage, and a **RESUPPLY VIABLE / RESUPPLY SHORTFALL** status banner.
+
+#### Equipment Readiness Card
+Per-vehicle FMC/on-hand ratio with inline mini-bar. Shows fleet FMC % and NMC count. Data sourced from the Readiness tab.
+
+#### Personnel Strength Card
+Per-element available/assigned with mini-bars. Shows totals: assigned, present, available. Data sourced from the Readiness tab.
+
+#### Barrel Wear Row *(cannon systems only, when EFC data exists)*
+Per-battery (or platoon/section) breakdown: worst-case wear status label + per-gun mini-bars. EFC data sourced from the EFC tab.
+
+#### Footer
+Cites data sources and flags count of critical items requiring commander action.
+
+> Data pulls automatically from: Logistics (RSR/CSR), Readiness (PERSTAT/MAINTSTAT), and EFC (barrel wear). Navigate to those tabs to update inputs; the SITREP refreshes in real time.
+
+---
 
 ### Tab 1 — Task Organization
 
@@ -248,8 +302,22 @@ A **RESUPPLY SHORTFALL** alert appears if runs needed exceed runs possible.
 #### DOS by Firing Scenario
 Four scenario bars at 25%, 50%, 75%, and 100% of authorized CSR. Color coded: Green (≥3 DOS), Amber (1–3 DOS), Red (<1 DOS).
 
-#### Resupply Math Breakdown
-Expandable section showing the full calculation chain with live values.
+#### Resupply Math Breakdown *(expandable)*
+Shows the full calculation chain with live values: turnaround time formula, runs/day math, and rounds/run breakdown by vehicle type.
+
+#### N-Day Ammo Projection *(expandable)*
+Projects daily and cumulative rounds, truck runs, lift weight, and estimated cost over 1–30 days at the current firing rate. Shortfall days are flagged.
+
+#### Loss Impact Calculator *(expandable, cannon systems only)*
+Models the effect of losing or deadlining PLS trucks without changing the firing rate or run count.
+
+Enter **PLS Trucks Lost / Deadlined**. The calculator shows:
+- Simulated rounds per run (reduced flatracks)
+- Simulated daily lift capacity
+- Surplus or deficit vs. current daily usage
+- SHORTFALL or SUFFICIENT status
+
+Use this to rapidly answer: *"If I lose two trucks, can I still sustain 50% CSR?"*
 
 ---
 
@@ -324,18 +392,32 @@ Outputs IBD, PTR, and ILD distances in both feet and meters.
 
 ### Tab 6 — Readiness
 
-**Purpose:** Personnel status (PERSTAT) and vehicle maintenance status (MAINTSTAT) tracking.
+**Purpose:** Personnel status (PERSTAT) and vehicle maintenance status (MAINTSTAT) tracking, including fault logging for NMC equipment and barrel wear display.
+
+#### Echelon Mismatch Warning
+If the saved PERSTAT data was recorded under a different echelon than the current sidebar setting, an amber banner appears at the top of the tab. This prevents silently inheriting data from the wrong element structure. Click **Reset PERSTAT** to clear and start fresh, or leave as-is if the data is still applicable.
 
 #### PERSTAT
-Enter assigned, present, and available personnel for each element (HHB, batteries, or platoons depending on echelon). Totals and availability percentage calculated automatically.
+Enter assigned, present, and available personnel for each element (HHB, batteries, or platoons depending on echelon). Totals and availability percentage calculated automatically. Collapsible with ⓘ info button.
 
 #### MAINTSTAT
-Vehicle maintenance tracker for all organic vehicle types. Enter on-hand, FMC (Fully Mission Capable), and PMC (Partially Mission Capable) counts. NMC is computed automatically.
+Vehicle maintenance tracker for all organic vehicle types. Enter on-hand, FMC (Fully Mission Capable), and PMC (Partially Mission Capable) counts. NMC is computed automatically. Collapsible with ⓘ info button.
 
 FMC % color coding:
 - Green: ≥85%
 - Amber: 70–85%
 - Red: <70%
+
+#### NMC Fault Log
+When any vehicle has NMC count > 0, a **NMC Fault Log** section automatically appears below the MAINTSTAT table. For each NMC vehicle, enter:
+- **Fault Description** — e.g., "Recoil mechanism failure"
+- **Parts on Order (NSN)** — NSN or "TBD"
+- **ETA** — e.g., "D+3", "TBD", or a date
+
+Fault log data persists to browser storage alongside PERSTAT and MAINTSTAT.
+
+#### Barrel Wear — EFC Status *(cannon systems only)*
+Displays a per-gun barrel wear table sourced from the EFC tab. Shows EFC accumulated, barrel life remaining, wear %, and status (OK / MONITOR / CAUTION / REPLACE). Appears only when EFC data has been entered.
 
 Data persists separately from the main configuration and exports in the LOGSTAT.
 
@@ -351,6 +433,8 @@ Data persists separately from the main configuration and exports in the LOGSTAT.
 Enter unit designation, event name, personnel count (PAX), start/end dates (event days auto-calculate), and location. Grand total banner updates in real time.
 
 #### Supply Classes (accordion sections)
+Each section has an ⓘ button in the header explaining the class definition and how the cost is calculated.
+
 | Class | Contents |
 |---|---|
 | **CL I** | MRE, UGR, JD (Jalapeño Dairy), bottled water — enter meals/cases per person per day |
@@ -369,7 +453,7 @@ Each CL section shows its running subtotal in the accordion header. Sections def
 
 **Purpose:** Quick-reference database for all standard FA munitions.
 
-Use filter buttons (ALL / 155mm / 105mm / Rockets / Charges / Fuzes) and the search box to find specific rounds.
+The filter automatically defaults to the caliber matching the active unit type (155mm for M109/M777, 105mm for M119A3, Rockets for HIMARS/MLRS) when the tab opens. Use the filter buttons (ALL / 155mm / 105mm / Rockets / Charges / Fuzes) to switch, or use the search box to find specific rounds.
 
 Each card shows: round designation, DODIC, planning weight (lbs per complete round, IAW ATP 3-09.23 Table 7-4), cube (ft³), hazmat class, and compatibility group.
 
@@ -457,6 +541,8 @@ Each block has an editable title (e.g., D+1, OPORD Notes, Fire Support Coord) an
 | **OSMIS** | Operational and Support Management Information System — Army cost database |
 | **PERSTAT** | Personnel Status report |
 | **MAINTSTAT** | Maintenance Status report |
+| **AMMSTAT** | Ammunition Status — FULL (≥100% CSR) / ADEQ (60–99%) / LOW (25–59%) / CRIT (<25%) |
+| **SITREP** | Situation Report — consolidated status brief for commander |
 
 ---
 
@@ -466,12 +552,13 @@ Each block has an editable title (e.g., D+1, OPORD Notes, Fire Support Coord) an
 2. **Task Org tab** → Set unit designation, higher HQ, CP locations, and PAA positions with occupying batteries
 3. **Task Org tab** → Enter PACE plan for fires net and C2; log any NMC equipment
 4. **Logistics tab** → Manual mode → Enter RSR and CSR per round type; verify haul capacity is not exceeded
-5. **DOS & Resupply tab** → Confirm runs possible ≥ runs needed; verify DOS at expected firing rate
+5. **DOS & Resupply tab** → Confirm runs possible ≥ runs needed; verify DOS at expected firing rate; run Loss Impact Calculator if trucks are at risk
 6. **Fire Missions tab** → Confirm max missions supportable; check danger close criteria if applicable
-7. **Readiness tab** → Enter PERSTAT and MAINTSTAT data
+7. **Readiness tab** → Enter PERSTAT and MAINTSTAT data; log fault descriptions and parts ETAs for any NMC vehicles
 8. **EFC tab** → Update barrel wear per gun if tracking long-term
 9. **Notes tab** → Capture planning notes, OPORD extracts, or mission-specific data
 10. **Export tab** → Refresh → Copy LOGSTAT or Download CSV for battle captain / S4
+11. **SITREP tab** → Brief the commander — all status data consolidated in one screen
 
 ---
 

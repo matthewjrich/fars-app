@@ -65,24 +65,25 @@
 ## SLIDE 4 — System Overview (Tab Map)
 
 ```
-PRIMARY TABS
+PRIMARY TABS (first row — gold SITREP always visible)
+├── SITREP [GOLD]        — Commander's brief: AMMSTAT, readiness, barrel wear, alerts
 ├── Task Organization    — Unit disposition, CPs, PAAs, PACE, NMC tracking
 ├── Logistics            — RSR/CSR entry, haul capacity, utilization
-├── DOS & Resupply       — Days of supply, runs per day, shortfall alerts
+├── DOS & Resupply       — Days of supply, runs per day, loss impact calculator
 ├── Fire Missions        — Mission sustainability, DC criteria, shell-fuze ref
 ├── PAA & Storage        — Storage capacity, Q-D arc calculator
-└── Readiness            — PERSTAT and MAINTSTAT tracking
+└── Readiness            — PERSTAT, MAINTSTAT, NMC fault log, barrel wear
 
-REFERENCE / TOOLS TABS
+REFERENCE / TOOLS TABS (second row)
 ├── Training Cost        — Event cost estimator (FY24 OSMIS rates)
-├── DODIC Reference      — Munition reference database
+├── DODIC Reference      — Munition reference, auto-filtered by weapon system
 ├── EFC Calculator       — Barrel life tracking per gun
 ├── Export / LOGSTAT     — LOGSTAT text report + CSV download
 └── Notes                — Freeform planning notes
 ```
 
 **TALKING POINTS:**
-- Eleven tabs organized into two rows. Primary tabs are the operational planning tools. The secondary row covers reference material, barrel life, export, and notes.
+- Twelve tabs organized into two rows. The gold SITREP button sits first in the primary row — it's always there as your rapid brief button.
 - Every tab reads from the same sidebar configuration — set your echelon and unit type once, and all tabs update.
 - The active tab is remembered between sessions.
 
@@ -171,14 +172,35 @@ REFERENCE / TOOLS TABS
 
 ---
 
+## SLIDE 9 — DEMO: SITREP Tab
+
+*[LIVE DEMO — SITREP Tab (gold button, far left of primary row)]*
+
+**Walk through:**
+1. Click the gold **SITREP** button
+2. Type a unit designation — `1-15 FA BN` — show it renders live at the top
+3. Click **↻ Update DTG** — show the military date-time group update
+4. Point out **BLUF Alerts** — red critical items listed first, amber advisory below
+5. Walk through the **Ammunition Status card** — DOS, rounds on hand, AMMSTAT badges (FULL / ADEQ / LOW / CRIT) per round type
+6. Show the **Logistics / Resupply card** — runs possible vs. needed, RESUPPLY VIABLE / SHORTFALL banner
+7. Show the **Equipment Readiness card** — each vehicle with FMC bar
+8. Show the **Personnel Strength card** — element breakdown from Readiness tab data
+9. If EFC data exists, show the **Barrel Wear row** — color-coded per battery
+
+**KEY POINT:** You just filled in data across six tabs. Hit SITREP and every piece is consolidated on one screen, formatted for a brief. No copy-paste, no reformatting — the brief builds itself.
+
+---
+
 ## SLIDE 10 — Additional Capabilities (At a Glance)
 
 | Tab | Capability | Value |
 |---|---|---|
-| **Readiness** | PERSTAT + MAINTSTAT | Tracks personnel availability and vehicle FMC/PMC/NMC by element |
+| **SITREP** | Commander's brief | AMMSTAT, PERSTAT, MAINTSTAT, barrel wear, and all critical alerts on one screen |
+| **Readiness** | PERSTAT + MAINTSTAT + fault log | Tracks personnel, vehicle FMC/PMC/NMC, and NMC fault descriptions/parts ETAs |
+| **DOS & Resupply** | Loss Impact Calculator | Simulate losing X trucks — shows daily lift cap vs. usage in real time |
 | **EFC Calculator** | Barrel wear per gun | Monitors barrel life against limits; flags guns approaching replacement |
 | **Training Cost** | FY24 OSMIS rates | Estimates CL I/II/III/IV/VIII/IX across event duration automatically |
-| **DODIC Reference** | Munition database | Weight, cube, hazmat class, compatibility group — searchable and filterable |
+| **DODIC Reference** | Munition database | Auto-filters to current weapon system; searchable by name or type |
 | **PAA & Storage** | Q-D arc calculator | Quantity-distance arcs per munition type and quantity |
 | **Notes** | Freeform blocks | Planning notes with titles; copy-all to clipboard |
 
@@ -192,7 +214,7 @@ REFERENCE / TOOLS TABS
 2. **Open ☰ Unit/Echelon** → configure your echelon, unit type, and vehicle quantities
 3. **Task Org tab** → set your unit designation, CP/PAA locations, PACE plan
 4. **Logistics tab** → enter RSR and CSR values for your munition set
-5. **Export tab** → Refresh → Copy LOGSTAT
+5. **SITREP tab** → brief the commander; or **Export tab** → Refresh → Copy LOGSTAT for the S4
 
 **Data persistence:** All inputs save automatically to the browser. Come back tomorrow and your data is still there. Clear browser data to reset.
 

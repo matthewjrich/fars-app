@@ -144,7 +144,12 @@ Watch the **RESUPPLY SHORTFALL** alert appear — runs needed now exceed what or
 
 Reset distance back to 35 km.
 
-**Key point to make:** This is the question every S4 asks: can your organic lift sustain the rate of fire? The app gives you that answer in real time, before you brief anyone.
+### Loss Impact Calculator
+Open the **🚛 Loss Impact Calculator** expander. Enter **Trucks Lost → 4**.
+
+Watch the sim daily lift cap drop and a **SHORTFALL** or **SUFFICIENT** result appear instantly.
+
+**Key point to make:** An enemy counter-battery strike, an IED, a breakdown — the question becomes "how many trucks can I lose before I can't sustain fires?" This answers it in real time, before anyone has to do the math manually.
 
 ---
 
@@ -186,12 +191,31 @@ Reset distance back to 35 km.
 | M992A3 CAT | 18 | 16 | 1 |
 | M1075A1 PLS | 24 | 22 | 1 |
 
-**Key point to make:** FMC % color coding — green ≥85%, amber 70–85%, red <70%. This feeds directly into the Export tab LOGSTAT.
+Notice the **NMC Fault Log** section appears automatically below the table because one Paladin is NMC. Fill in:
+- **M109A7 Paladin** → Fault: `Recoil mechanism failure` · Parts: `NSN 1005-01-430-8812` · ETA: `D+3`
+
+**Key point to make:** The fault log links the numbers to the maintenance picture — the S4 doesn't just see "1 NMC", they see what's broken and when parts arrive. This feeds into the SITREP and Export LOGSTAT automatically.
 
 ---
 
-## STEP 7 — EXPORT TAB
-*Tab 10 — the product*
+## STEP 7 — SITREP TAB
+*Gold button, far left of primary row — the brief*
+
+1. Click the gold **SITREP** button
+2. Type unit designation: `1-15 FA`
+3. Click **↻ Update DTG** — the military timestamp refreshes
+4. Walk through **BLUF Alerts** — red and amber items auto-generated from all data entered
+5. Show the **Ammunition Status** card — AMMSTAT badges (FULL / ADEQ / LOW / CRIT) per round type, DOS, and cap used
+6. Show the **Logistics / Resupply** card — runs possible vs. needed, RESUPPLY VIABLE banner (or SHORTFALL if triggered earlier)
+7. Show **Equipment Readiness** — M109A7 Paladin at 94% FMC, 1 NMC flagged
+8. Show **Personnel Strength** — element breakdown from PERSTAT data entered in Readiness tab
+
+**Key point to make:** You just briefed the battalion commander. Everything you entered across the last 20 minutes — ammo, logistics, personnel, maintenance — distilled into one screen, with color-coded status and no reformatting.
+
+---
+
+## STEP 9 — EXPORT TAB
+*Tab 10 — the formal product*
 
 1. Enter Unit Designation: `1-15 FA`
 2. Click **Refresh (Readiness / EFC / Notes)**
@@ -200,16 +224,17 @@ Reset distance back to 35 km.
    - Lift capacity and sustainment metrics
    - Full RSR with AUTH status
    - PACE plan with the DOWN alternate
-   - NMC item (C Battery, Gun 3)
+   - NMC item (C Battery, Gun 3) with fault description and parts ETA
    - CP and PAA locations
    - PERSTAT and MAINTSTAT
 4. Click **Copy LOGSTAT** → paste into a chat, email, or document
 
-**Key point to make:** You filled in data across 6 tabs over the last 15 minutes. One button, one refresh — formatted LOGSTAT ready to send. No copy-paste between spreadsheets, no version control fight.
+**Key point to make:** SITREP is for the brief. Export is for the product you send — the formal LOGSTAT to the S4 or battle captain. Both pull from the same data; neither requires manual formatting.
 
 ---
 
-## STEP 8 — REFERENCES TAB (CLOSE)
+## STEP 10 — REFERENCES TAB (CLOSE)
+*Tab 12 — close with credibility*
 *Tab 12 — close with credibility*
 
 Walk through the doctrine list briefly:
@@ -229,6 +254,10 @@ Walk through the doctrine list briefly:
 | Task Org status dots | "Red and amber dots on the tab button. You see the problem from anywhere in the app." |
 | Doctrinal RSR defaults | "ATP 3-09.23 Table 7-4, built in. One click to a doctrinal planning baseline." |
 | Danger close | "DC criteria embedded with exceptions and restrictions. Same window as the mission math." |
+| SITREP tab | "The gold button is always there. Brief the commander without reformatting anything." |
+| AMMSTAT | "FULL, ADEQ, LOW, CRIT — standardized ammo status against your authorized CSR." |
+| Fault log | "One NMC shows up in the SITREP. The S3 can immediately see what's broken and when parts arrive." |
+| Loss impact | "If I lose two trucks, can I still sustain fires? The app answers in real time." |
 | LOGSTAT export | "Fifteen minutes of inputs. One button. Formatted product ready to send." |
 | References tab | "The app tells you when its own data needs verifying. That's the standard." |
 | Data persistence | "No save button. No login. Come back tomorrow — your data is still there." |
