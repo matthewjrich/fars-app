@@ -55,7 +55,7 @@
       `  Unit:       ${unitLabel}`,
       `  System:     ${v.unitType} (${v.echelon})`,
       `  Tubes/Lnch: ${v.tubes}`,
-      `  Config:     ${v.isCannon ? (v.cclMode ? 'CCL (144 rds/flatrack)' : 'Loose (160 rds/flatrack)') : 'Rocket/Pod'}`,
+      `  Config:     ${v.isCannon ? '86 complete rds/flatrack (Army planning factor)' : 'Rocket/Pod'}`,
       ``,
       `LIFT CAPACITY:`,
       `  Total Capacity:  ${fmt(c.totalRoundsCap)} ${v.isCannon ? 'rounds' : 'pods'}`,

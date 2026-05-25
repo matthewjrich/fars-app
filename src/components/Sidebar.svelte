@@ -9,7 +9,7 @@
   /** @type {number} */ export let trailQty;
   /** @type {number} */ export let catQty;
   /** @type {number} */ export let hmmwvQty;
-  export let cclMode, planMode, loadPct;
+  export let planMode, loadPct;
   export let dist, speed, loadTime, planHours;
   export let authCsr, firingRate;
   export let paaGunLine, paaBsa;
@@ -335,24 +335,6 @@
     </div>
     {/if}
   </div>
-
-  <!-- 3. Load Config (cannon only) -->
-  {#if isCannon && !isM119}
-  <div class="acc-section">
-    <div class="acc-header" class:open={open.load} on:click={() => toggle('load')}>
-      <span>Load Configuration</span><span class="acc-arrow">▼</span>
-    </div>
-    {#if open.load}
-    <div class="acc-body">
-      <div class="toggle-row">
-        <input type="checkbox" id="cclMode" bind:checked={cclMode}>
-        <label for="cclMode">Combat Configured Loads (CCL)</label>
-      </div>
-      <div class="caption">Planning factor: 86 complete rds/flatrack (Army rule of thumb)</div>
-    </div>
-    {/if}
-  </div>
-  {/if}
 
   <!-- 4. Planning Mode -->
   <div class="acc-section">

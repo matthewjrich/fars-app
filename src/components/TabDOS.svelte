@@ -130,7 +130,7 @@
       <b style="color:var(--gold)">Resupply Calculation:</b><br><br>
       ▸ Turnaround: ({v.dist}km×2)÷{v.speed}km/h+{v.loadTime}hr = <b style="color:var(--gold)">{fmtD(c.totalTurnaround)} hrs/run</b><br>
       ▸ Runs/day: {v.planHours}÷{fmtD(c.totalTurnaround)} = <b style="color:var(--gold)">{c.runsPerDay}</b><br>
-      ▸ Rds/run: {c.totalFlatracks}×{v.cclMode ? 144 : 160} = <b style="color:var(--gold)">{fmt(c.roundsPerRun)}</b><br>
+      ▸ Rds/run: {c.totalFlatracks}×86 (flatrack) + {v.catQty}×95 (CAT) = <b style="color:var(--gold)">{fmt(c.roundsPerRun)}</b><br>
       ▸ FY24 CL IX cost/run: <b style="color:var(--gold)">{fmtCurrency(c.totalRunCost)}</b> ({fmtD(c.distMiles, 1)} miles RT)
     </div>
   {/if}

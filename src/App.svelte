@@ -26,7 +26,6 @@
   let trailQty   = 18;
   let catQty     = 18;
   let hmmwvQty   = 18;
-  let cclMode    = false;
   let planMode   = 'manual';
   let loadPct    = 25;
   let dist       = 25;
@@ -72,7 +71,6 @@
     trailQty: isM119 ? 0 : trailQty,
     catQty: isM109 ? catQty : 0,
     hmmwvQty: isM119 ? hmmwvQty : 0,
-    cclMode: (isCannon && !isM119) && cclMode,
     planMode, loadPct,
     dist, speed, loadTime, planHours, authCsr,
     firingRate, paaGunLine, paaBsa, dudRate, reloadTime,
@@ -142,7 +140,6 @@
         if (s.trailQty        != null) trailQty         = s.trailQty;
         if (s.catQty          != null) catQty           = s.catQty;
         if (s.hmmwvQty        != null) hmmwvQty         = s.hmmwvQty;
-        if (s.cclMode         != null) cclMode          = s.cclMode;
         if (s.planMode        != null) planMode         = s.planMode;
         if (s.loadPct         != null) loadPct          = s.loadPct;
         if (s.dist            != null) dist             = s.dist;
@@ -172,7 +169,7 @@
       localStorage.setItem('fars_v1', JSON.stringify({
         echelon, unitType, unitCategory, tubes,
         truckQty, trailQty, catQty, hmmwvQty,
-        cclMode, planMode, loadPct,
+        planMode, loadPct,
         dist, speed, loadTime, planHours,
         authCsr, firingRate, paaGunLine, paaBsa,
         dudRate, reloadTime,
@@ -232,7 +229,7 @@
       bind:useRoster {rosterBatteries}
       on:rosterchange={handleRosterChange}
       on:unitchange={handleUnitChange}
-      bind:cclMode bind:planMode bind:loadPct
+      bind:planMode bind:loadPct
       bind:dist bind:speed bind:loadTime bind:planHours
       bind:authCsr bind:firingRate
       bind:paaGunLine bind:paaBsa
