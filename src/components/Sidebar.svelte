@@ -26,6 +26,33 @@
   let open = /** @type {Record<string,boolean>} */({ unit: true, load: false, plan: false, sustain: false, dos: false, paa: false, tac: false });
   function toggle(k) { open = { ...open, [k]: !open[k] }; }
 
+  // ── Info popover state ──
+  let infoOpen = /** @type {Record<string,boolean>} */({});
+  function toggleInfo(k, e) { e.stopPropagation(); infoOpen = { ...infoOpen, [k]: !infoOpen[k] }; }
+
+  const INFO = {
+    unit: `Sets the organizational level and weapon system. Echelon pre-loads doctrinal vehicle counts:<br><br>
+      <b>Battalion:</b> 18 tubes · 18 PLS · 18 trailers · 18 CATs<br>
+      <b>Battery:</b> 6 tubes · 6 PLS · 6 trailers · 6 CATs<br>
+      <b>Platoon:</b> 2 tubes · 2 CATs · no organic ammo section<br><br>
+      <b>Non-Standard Configuration</b> lets you build a custom battalion with mixed weapon systems or non-doctrinal tube counts.`,
+    plan: `<b>Detailed RSR</b> — enter exact round quantities per munition type in the Logistics tab. Use for actual LOGSTAT submissions and RSR/CSR comparison.<br><br>
+      <b>Quick Estimate (Load %)</b> — set a percentage of total haul capacity. The app back-calculates a round count from weight. Use for rapid planning when a per-round breakdown is not yet available.`,
+    sustain: `These four inputs drive all resupply timing math.<br><br>
+      <b>Turnaround time</b> = (Distance × 2 ÷ Speed) + Loading Time<br>
+      <b>Runs possible/day</b> = Planning Hours ÷ Turnaround<br><br>
+      Runs possible is compared against runs needed to sustain the firing rate. If runs needed exceeds runs possible, a <b>RESUPPLY SHORTFALL</b> alert appears in the DOS &amp; Resupply tab.`,
+    dos: `<b>Authorized CSR</b> — the Controlled Supply Rate from higher HQ. Maximum rounds per tube per day you are authorized to fire.<br><br>
+      <b>Expected Firing Rate</b> — a planning discount on the CSR. If authorized 60 rds/tube/day but expected to fire at 50%, the app plans for 30 rds/tube/day actual consumption.<br><br>
+      Together these compute <b>daily ammo usage</b>, which drives Days of Supply and Runs Needed in the DOS &amp; Resupply tab.`,
+    paa: `Defines ammunition storage capacity at the firing position.<br><br>
+      <b>Gun Line</b> — rounds stored at or near each howitzer (per tube).<br>
+      <b>BSA</b> — total additional storage at the Battery Support Area.<br><br>
+      The PAA &amp; Storage tab uses these values to show whether your round count fits within position limits and to calculate Q-D (quantity-distance) explosive safety arcs per DA Pam 385-64.`,
+    tac: `<b>Dud / Misfire Rate</b> — reduces effective rounds available for planning. A 2% dud rate means 2% of rounds on hand are expected not to produce effects. Applied to total round capacity when computing Days of Supply and max missions.<br><br>
+      <b>Pod Reload Time</b> (rockets only) — minutes required to reload one pod after firing. Used in the Fire Missions tab to calculate time between volleys.`,
+  };
+
   // ── Unit category ──
   export let unitCategory = 'Cannon (SP)';
 
@@ -189,8 +216,11 @@
   <!-- 1. Echelon & Unit -->
   <div class="acc-section">
     <div class="acc-header" class:open={open.unit} on:click={() => toggle('unit')}>
-      <span>Echelon &amp; Unit</span><span class="acc-arrow">▼</span>
+      <span>Echelon &amp; Unit</span>
+      <button class="info-btn" on:click={e => toggleInfo('unit', e)} title="What is this?">ⓘ</button>
+      <span class="acc-arrow">▼</span>
     </div>
+    {#if infoOpen.unit}<div class="info-popover">{@html INFO.unit}</div>{/if}
     {#if open.unit}
     <div class="acc-body">
 
@@ -339,8 +369,13 @@
   <!-- 4. Planning Mode -->
   <div class="acc-section">
     <div class="acc-header" class:open={open.plan} on:click={() => toggle('plan')}>
-      <span>Ammo Entry Mode</span><span class="acc-arrow">▼</span>
+      <span>Ammo Entry Mode</span>
+      <button class="info-btn" on:click={e => toggleInfo('plan', e)} title="What is this?">ⓘ</button>
+      <span class="acc-arrow">▼</span>
     </div>
+    {#if infoOpen.plan}
+      <div class="info-popover">{@html INFO.plan}</div>
+    {/if}
     {#if open.plan}
     <div class="acc-body">
       <div class="radio-group">
@@ -360,8 +395,13 @@
   <!-- 5. Sustainment -->
   <div class="acc-section">
     <div class="acc-header" class:open={open.sustain} on:click={() => toggle('sustain')}>
-      <span>Sustainment &amp; Routes</span><span class="acc-arrow">▼</span>
+      <span>Sustainment &amp; Routes</span>
+      <button class="info-btn" on:click={e => toggleInfo('sustain', e)} title="What is this?">ⓘ</button>
+      <span class="acc-arrow">▼</span>
     </div>
+    {#if infoOpen.sustain}
+      <div class="info-popover">{@html INFO.sustain}</div>
+    {/if}
     {#if open.sustain}
     <div class="acc-body">
       <div class="field">
@@ -393,8 +433,11 @@
   <!-- 7. DOS & Firing Rate -->
   <div class="acc-section">
     <div class="acc-header" class:open={open.dos} on:click={() => toggle('dos')}>
-      <span>Firing Rate Assumptions</span><span class="acc-arrow">▼</span>
+      <span>Firing Rate Assumptions</span>
+      <button class="info-btn" on:click={e => toggleInfo('dos', e)} title="What is this?">ⓘ</button>
+      <span class="acc-arrow">▼</span>
     </div>
+    {#if infoOpen.dos}<div class="info-popover">{@html INFO.dos}</div>{/if}
     {#if open.dos}
     <div class="acc-body">
       <div class="field">
@@ -415,8 +458,11 @@
   <!-- 8. PAA Storage -->
   <div class="acc-section">
     <div class="acc-header" class:open={open.paa} on:click={() => toggle('paa')}>
-      <span>PAA Storage</span><span class="acc-arrow">▼</span>
+      <span>PAA Storage</span>
+      <button class="info-btn" on:click={e => toggleInfo('paa', e)} title="What is this?">ⓘ</button>
+      <span class="acc-arrow">▼</span>
     </div>
+    {#if infoOpen.paa}<div class="info-popover">{@html INFO.paa}</div>{/if}
     {#if open.paa}
     <div class="acc-body">
       <div class="field">
@@ -434,8 +480,11 @@
   <!-- 9. Tactical Realism -->
   <div class="acc-section">
     <div class="acc-header" class:open={open.tac} on:click={() => toggle('tac')}>
-      <span>Friction Factors</span><span class="acc-arrow">▼</span>
+      <span>Friction Factors</span>
+      <button class="info-btn" on:click={e => toggleInfo('tac', e)} title="What is this?">ⓘ</button>
+      <span class="acc-arrow">▼</span>
     </div>
+    {#if infoOpen.tac}<div class="info-popover">{@html INFO.tac}</div>{/if}
     {#if open.tac}
     <div class="acc-body">
       <div class="field">

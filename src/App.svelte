@@ -263,6 +263,42 @@
         </div>
       </div>
 
+      <!-- Persistent metrics strip -->
+      {#if config.isCannon || config.isMlrs || config.isM119}
+      {@const shortfall = computed.runsNeeded > computed.runsPerDay}
+      {@const dosColor = computed.dosAvail >= 3 ? '#7ee787' : computed.dosAvail >= 1 ? '#e3b341' : '#ffa198'}
+      {@const runColor = !shortfall ? '#7ee787' : '#ffa198'}
+      <div class="metrics-strip">
+        <div class="ms-item">
+          <span class="ms-label">{config.isCannon ? 'Total Rounds' : 'Total Pods'}</span>
+          <span class="ms-value">{computed.totalRoundsCap.toLocaleString()}</span>
+        </div>
+        <div class="ms-divider"></div>
+        <div class="ms-item">
+          <span class="ms-label">DOS</span>
+          <span class="ms-value" style="color:{dosColor}">{computed.dosAvail >= 999 ? '—' : computed.dosAvail.toFixed(1)}</span>
+        </div>
+        <div class="ms-divider"></div>
+        <div class="ms-item">
+          <span class="ms-label">Runs Possible</span>
+          <span class="ms-value" style="color:{runColor}">{computed.runsPerDay}</span>
+        </div>
+        <div class="ms-divider"></div>
+        <div class="ms-item">
+          <span class="ms-label">Runs Needed</span>
+          <span class="ms-value" style="color:{runColor}">{computed.runsNeeded}</span>
+        </div>
+        <div class="ms-divider"></div>
+        <div class="ms-item">
+          <span class="ms-label">Capacity Used</span>
+          <span class="ms-value" style="color:{computed.spatialUtil > 100 ? '#ffa198' : computed.spatialUtil > 85 ? '#e3b341' : '#7ee787'}">{Math.min(computed.spatialUtil, 999).toFixed(0)}%</span>
+        </div>
+        <div class="ms-status" style="background:{shortfall ? 'rgba(255,161,152,0.12)' : 'rgba(126,231,135,0.10)'};color:{shortfall ? '#ffa198' : '#7ee787'};border-color:{shortfall ? '#ffa198' : '#7ee787'};">
+          {shortfall ? '⚠ SHORTFALL' : '✓ VIABLE'}
+        </div>
+      </div>
+      {/if}
+
       <div class="tab-content" style="overflow-y:auto;flex:1;">
         {#if activeTab === 1}
           <TabTaskOrg {config} />
