@@ -173,7 +173,27 @@ Watch the sim daily lift cap drop and a **SHORTFALL** or **SUFFICIENT** result a
 
 ---
 
-## STEP 6 — READINESS TAB
+## STEP 6 — PAA & STORAGE TAB
+*Tab 5 — position ammo status*
+
+Enter the battalion's current round count at the position:
+- **Rounds on Hand → 2,200**
+
+Watch the metrics populate:
+- **Daily Usage** — 255 rds/day (17 tubes × 60 CSR × 50%)
+- **Time Until Empty** — auto-calculated in hours and days at current rate
+- **Reorder Point** — auto-calculated from turnaround (4.33 hrs at 35 km) × hourly burn rate
+
+**Trigger a reorder alert:** Lower Rounds on Hand to **40**.
+Watch the **⚠ REORDER NOW** alert fire — 40 rounds is at or below the reorder point, meaning the truck won't return before the position expends its last round.
+
+Reset to **2,200**.
+
+**Key point to make:** Every battery commander asks the same question mid-mission: "How long do I have, and when do I need to call?" The app answers it from values already in the sidebar — turnaround time, firing rate, distance. One number entered. Everything else is derived.
+
+---
+
+## STEP 7 — READINESS TAB
 *Tab 6 — personnel and vehicle status*
 
 ### PERSTAT (quick entry)
@@ -198,7 +218,7 @@ Notice the **NMC Fault Log** section appears automatically below the table becau
 
 ---
 
-## STEP 7 — SITREP TAB
+## STEP 8 — SITREP TAB
 *Gold button, far left of primary row — the brief*
 
 1. Click the gold **SITREP** button
@@ -235,10 +255,10 @@ Notice the **NMC Fault Log** section appears automatically below the table becau
 
 ## STEP 10 — REFERENCES TAB (CLOSE)
 *Tab 12 — close with credibility*
-*Tab 12 — close with credibility*
 
 Walk through the doctrine list briefly:
 - ATP 3-09.23 (Feb 2026) — **Verified** — the RSR defaults, round weights, flat rack capacities
+- DA Form 2408-4 — **Verified** — the governing form for EFC barrel wear tracking; FARS replicates its per-charge calculation and now records tube serial numbers and retubings alongside it
 - TM 43-0001-28 series — **Check Edition** — shell-fuze combinations, always verify before live fire
 - OSMIS FY24 — **Update Required** — cost factors, pull current rates from Army G4 for budget submissions
 
@@ -258,6 +278,7 @@ Walk through the doctrine list briefly:
 | AMMSTAT | "FULL, ADEQ, LOW, CRIT — standardized ammo status against your authorized CSR." |
 | Fault log | "One NMC shows up in the SITREP. The S3 can immediately see what's broken and when parts arrive." |
 | Loss impact | "If I lose two trucks, can I still sustain fires? The app answers in real time." |
+| PAA reorder trigger | "Enter rounds on hand. The app tells you exactly when to call for resupply so you don't have a gap in fires." |
 | LOGSTAT export | "Fifteen minutes of inputs. One button. Formatted product ready to send." |
 | References tab | "The app tells you when its own data needs verifying. That's the standard." |
 | Data persistence | "No save button. No login. Come back tomorrow — your data is still there." |
