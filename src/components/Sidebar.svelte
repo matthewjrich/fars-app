@@ -12,7 +12,6 @@
   export let planMode, loadPct;
   export let dist, speed, loadTime, planHours;
   export let authCsr, firingRate;
-  export let paaGunLine, paaBsa;
   export let dudRate, reloadTime;
   export let config;
   export let sidebarOpen = false;
@@ -23,7 +22,7 @@
   $: isMlrs   = config.isMlrs;
 
   // ── Accordion state ──
-  let open = /** @type {Record<string,boolean>} */({ unit: true, load: false, plan: false, sustain: false, dos: false, paa: false, tac: false });
+  let open = /** @type {Record<string,boolean>} */({ unit: true, load: false, plan: false, sustain: false, dos: false, tac: false });
   function toggle(k) { open = { ...open, [k]: !open[k] }; }
 
   // ── Info popover state ──
@@ -45,10 +44,6 @@
     dos: `<b>Authorized CSR</b> — the Controlled Supply Rate from higher HQ. Maximum rounds per tube per day you are authorized to fire.<br><br>
       <b>Expected Firing Rate</b> — a planning discount on the CSR. If authorized 60 rds/tube/day but expected to fire at 50%, the app plans for 30 rds/tube/day actual consumption.<br><br>
       Together these compute <b>daily ammo usage</b>, which drives Days of Supply and Runs Needed in the DOS &amp; Resupply tab.`,
-    paa: `Defines ammunition storage capacity at the firing position.<br><br>
-      <b>Gun Line</b> — rounds stored at or near each howitzer (per tube).<br>
-      <b>BSA</b> — total additional storage at the Battery Support Area.<br><br>
-      The PAA &amp; Storage tab uses these values to show whether your round count fits within position limits and to calculate Q-D (quantity-distance) explosive safety arcs per DA Pam 385-64.`,
     tac: `<b>Dud / Misfire Rate</b> — reduces effective rounds available for planning. A 2% dud rate means 2% of rounds on hand are expected not to produce effects. Applied to total round capacity when computing Days of Supply and max missions.<br><br>
       <b>Pod Reload Time</b> (rockets only) — minutes required to reload one pod after firing. Used in the Fire Missions tab to calculate time between volleys.`,
   };
@@ -455,29 +450,7 @@
     {/if}
   </div>
 
-  <!-- 8. PAA Storage -->
-  <div class="acc-section">
-    <div class="acc-header" class:open={open.paa} on:click={() => toggle('paa')}>
-      <span>PAA Storage</span>
-      <button class="info-btn" on:click={e => toggleInfo('paa', e)} title="What is this?">ⓘ</button>
-      <span class="acc-arrow">▼</span>
-    </div>
-    {#if infoOpen.paa}<div class="info-popover">{@html INFO.paa}</div>{/if}
-    {#if open.paa}
-    <div class="acc-body">
-      <div class="field">
-        <label>Gun Line Capacity (rds / tube)</label>
-        <input type="number" bind:value={paaGunLine} min="0">
-      </div>
-      <div class="field">
-        <label>BSA Storage Capacity (total rds)</label>
-        <input type="number" bind:value={paaBsa} min="0">
-      </div>
-    </div>
-    {/if}
-  </div>
-
-  <!-- 9. Tactical Realism -->
+  <!-- 8. Tactical Realism -->
   <div class="acc-section">
     <div class="acc-header" class:open={open.tac} on:click={() => toggle('tac')}>
       <span>Friction Factors</span>

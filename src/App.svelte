@@ -35,8 +35,6 @@
   let planHours  = 18;
   let authCsr    = 60;
   let firingRate = 50;
-  let paaGunLine = 50;
-  let paaBsa     = 2000;
   let dudRate    = 2;
   let reloadTime = 15;
 
@@ -74,7 +72,7 @@
     hmmwvQty: isM119 ? hmmwvQty : 0,
     planMode, loadPct,
     dist, speed, loadTime, planHours, authCsr,
-    firingRate, paaGunLine, paaBsa, dudRate, reloadTime,
+    firingRate, dudRate, reloadTime,
     customMunitions,
     useRoster, rosterBatteries,
   };
@@ -149,8 +147,6 @@
         if (s.planHours       != null) planHours        = s.planHours;
         if (s.authCsr         != null) authCsr          = s.authCsr;
         if (s.firingRate      != null) firingRate       = s.firingRate;
-        if (s.paaGunLine      != null) paaGunLine       = s.paaGunLine;
-        if (s.paaBsa          != null) paaBsa           = s.paaBsa;
         if (s.dudRate         != null) dudRate          = s.dudRate;
         if (s.reloadTime      != null) reloadTime       = s.reloadTime;
         if (s.useRoster       != null) useRoster        = s.useRoster;
@@ -172,7 +168,7 @@
         truckQty, trailQty, catQty, hmmwvQty,
         planMode, loadPct,
         dist, speed, loadTime, planHours,
-        authCsr, firingRate, paaGunLine, paaBsa,
+        authCsr, firingRate,
         dudRate, reloadTime,
         useRoster, rosterBatteries,
         rsrValues, csrByRound,
@@ -233,7 +229,6 @@
       bind:planMode bind:loadPct
       bind:dist bind:speed bind:loadTime bind:planHours
       bind:authCsr bind:firingRate
-      bind:paaGunLine bind:paaBsa
       bind:dudRate bind:reloadTime
       {config}
       {sidebarOpen}
