@@ -48,6 +48,8 @@
     } else if (cfg.isM119) {
       veh.push({ name: 'M119A3', auth: cfg.tubes });
       if (cfg.hmmwvQty > 0) veh.push({ name: 'M1097 HMMWV', auth: cfg.hmmwvQty });
+    } else if (cfg.isCannon) {
+      veh.push({ name: cfg.unitType, auth: cfg.tubes });
     } else {
       veh.push({ name: cfg.isMlrs ? 'M270A2 MLRS' : 'M142 HIMARS', auth: cfg.tubes });
     }
