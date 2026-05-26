@@ -123,15 +123,14 @@ export function getMlcVehiclesForUnit(v) {
     if (v.tubes > 0) vehicles.push({name:"M119A3 w/HMMWV", qty:v.tubes, role:"Gun System"});
     if (v.hmmwvQty > 0) vehicles.push({name:"M1097 HMMWV", qty:v.hmmwvQty, role:"Ammo HMMWV"});
   } else if (v.isCannon) {
-    const gunName = v.unitType === 'M109A7' ? 'M109A7 Paladin' : v.unitType === 'M109A6' ? 'M109A6 Paladin' : 'M109A6 Paladin';
+    const gunName = v.unitType === 'M109A7' ? 'M109A7 Paladin'
+                  : v.unitType === 'M109A6' ? 'M109A6 Paladin'
+                  : v.unitType === 'M777A2' ? 'M777A2 w/LMTV'
+                  : v.unitType;
     if (v.tubes > 0) vehicles.push({name:gunName, qty:v.tubes, role:"Gun System"});
     if (v.catQty > 0) vehicles.push({name:"M992A3 CAT (FAASV)", qty:v.catQty, role:"Ammo Carrier"});
     if (v.truckQty > 0) vehicles.push({name:"M1075A1 PLS (loaded)", qty:v.truckQty, role:"Ammo Truck"});
     if (v.trailQty > 0) vehicles.push({name:"M1076 Trailer (loaded)", qty:v.trailQty, role:"Ammo Trailer"});
-    if (v.unitType === 'M777A2') {
-      vehicles.splice(0, 1);
-      if (v.tubes > 0) vehicles.unshift({name:"M777A2 w/LMTV", qty:v.tubes, role:"Gun System"});
-    }
   } else {
     const gunName = v.isMlrs ? 'M270A2 MLRS' : 'M142 HIMARS';
     if (v.tubes > 0) vehicles.push({name:gunName, qty:v.tubes, role:"Launcher"});
