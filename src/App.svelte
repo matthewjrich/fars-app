@@ -304,7 +304,7 @@
 
       <div class="tab-content" style="overflow-y:auto;flex:1;">
         {#if activeTab === 13}
-          <TabSitrep {config} {computed} {rsrValues} {csrByRound} {munKeys} />
+          <TabSitrep {config} {computed} {rsrValues} {csrByRound} {munKeys} {compositeGroups} />
         {:else if activeTab === 1}
           <TabTaskOrg {config} />
         {:else if activeTab === 2}

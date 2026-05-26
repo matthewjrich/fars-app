@@ -5,9 +5,10 @@
 
   export let config;
   export let computed;
-  export let rsrValues  = {};
-  export let csrByRound = {};
-  export let munKeys    = [];
+  export let rsrValues      = {};
+  export let csrByRound     = {};
+  export let munKeys        = [];
+  export let compositeGroups = [];
 
   $: v = config;
   $: c = computed;
@@ -116,13 +117,21 @@
   // ── Ammo status ──
   function munLabel(k) { return k.includes('||') ? k.split('||')[1] : k; }
 
+  function tubesForKey(k) {
+    if (v.unitCategory === 'Composite' && k.includes('||')) {
+      const sys = k.split('||')[0];
+      return (compositeGroups.find(g => g.unitType === sys) || {}).tubes || v.tubes;
+    }
+    return v.tubes;
+  }
+
   $: munStatus = (() => {
     const byLabel = {};
     for (const k of munKeys) {
       const label  = munLabel(k);
       const rsr    = rsrValues[k]  || 0;
       const csrPer = csrByRound[k] || 0;
-      const csrTot = csrPer * (v.tubes || 1);
+      const csrTot = csrPer * tubesForKey(k);
       if (!byLabel[label]) byLabel[label] = { label, rsr: 0, csrTot: 0 };
       byLabel[label].rsr    += rsr;
       byLabel[label].csrTot += csrTot;
@@ -175,8 +184,9 @@
     munKeys.forEach(k => {
       const rsr = rsrValues[k] || 0;
       const csr = csrByRound[k] || 0;
-      if (csr > 0 && rsr > csr * v.tubes)
-        a.push({ sev: 'amber', msg: `CSR VIOLATION — ${munLabel(k)}: RSR ${fmt(rsr)} exceeds auth ${fmt(csr * v.tubes)}` });
+      const csrAuth = csr * tubesForKey(k);
+      if (csr > 0 && rsr > csrAuth)
+        a.push({ sev: 'amber', msg: `CSR VIOLATION — ${munLabel(k)}: RSR ${fmt(rsr)} exceeds auth ${fmt(csrAuth)}` });
     });
     if (totNmc >= 3)
       a.push({ sev: 'red',   msg: `${totNmc} vehicles NMC — combat power degraded` });
