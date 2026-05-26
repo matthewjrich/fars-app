@@ -1,6 +1,6 @@
 # FARS — Field Artillery Resource Sync
 ## User Manual
-**Version:** 2.4 | **Updated:** May 2026 | **Cost Factors:** OSMIS FY24 | **Classification:** UNCLASSIFIED // FOR OFFICIAL USE ONLY
+**Version:** 2.5 | **Updated:** May 2026 | **Cost Factors:** OSMIS FY24 | **Classification:** UNCLASSIFIED // FOR OFFICIAL USE ONLY
 
 ---
 
@@ -92,13 +92,7 @@ Default vehicle counts by echelon (M109 series):
 | **Authorized CSR (rds/tube/day)** | Maximum authorized daily rate from higher HQ |
 | **Expected Daily Firing Rate (%)** | Estimated percentage of CSR actually fired each day |
 
-#### 8. PAA Storage
-| Field | Description |
-|---|---|
-| **Gun Line Capacity (rds/tube)** | Rounds stored at the gun line per howitzer |
-| **BSA Storage Capacity (total rds)** | Total round capacity at the Battery Support Area |
-
-#### 9. Tactical Realism
+#### 8. Tactical Realism
 | Field | Description |
 |---|---|
 | **Dud / Misfire Rate (%)** | Percentage of rounds expected to fail — reduces effective rounds in all calculations |
@@ -364,15 +358,27 @@ Authorized fuze-projectile combinations for the active weapon system, organized 
 
 ### Tab 5 — PAA & Storage
 
-**Purpose:** Ammunition storage capacity assessment and Q-D arc calculation.
+**Purpose:** Position-level ammunition status tracking, reorder trigger, and Q-D arc calculation.
 
-#### Storage Metrics
-- **Gun Line Capacity** — total rounds the gun line can hold (rds/tube × tubes)
-- **BSA Storage Capacity** — total BSA storage configured in sidebar
-- **Total PAA Capacity** — gun line + BSA combined
-- **Effective Rounds on Hand** — rounds after dud rate
+#### Rounds on Hand
+Enter the total rounds currently at the position — ground stock and truck-borne ammunition combined. This is a live operational input updated as deliveries arrive and rounds are expended.
 
-Two utilization gauges show current rounds vs. gun line and BSA capacity. Overflow alerts trigger if rounds exceed capacity.
+#### Ammunition Status Metrics
+| Metric | Description |
+|---|---|
+| **Rounds on Hand** | Total rounds at position (user-entered) |
+| **Daily Usage** | Rounds consumed per day at configured firing rate (tubes × CSR × firing rate %) |
+| **Time Until Empty** | How long current stock lasts — red if < 1 turnaround, amber if 1–2 turnarounds, green if > 2 |
+| **Reorder Point** | Minimum rounds on hand before calling for resupply |
+
+#### Reorder Alert
+| Status | Condition |
+|---|---|
+| **REORDER NOW** (red) | Rounds on hand ≤ reorder point — the truck must already be rolling |
+| **REORDER SOON** (amber) | Rounds on hand ≤ 2× reorder point — call before stock drops further |
+| **SUFFICIENT** (green) | Stock is above the reorder threshold |
+
+**How the reorder point is calculated:** `ceil(turnaround hrs × hourly usage rate)` — the rounds that will be consumed during one complete resupply run. If turnaround is 4.3 hrs and you're burning 21 rounds/hr, the reorder point is 91 rounds. Waiting until that number is reached means the truck won't return before the position fires its last round. Both turnaround and hourly usage update live when sidebar inputs (distance, speed, draw time, firing rate) change.
 
 #### NET Explosive Weight (NEW) Reference
 Table of NEW values per round for the active weapon system. Used for explosive site plans and Q-D arc calculations (DA Pam 385-64).
@@ -463,9 +469,16 @@ Each card shows: round designation, DODIC, planning weight (lbs per complete rou
 
 ### Tab 9 — EFC Calculator
 
-**Purpose:** Tracks Equivalent Full Charge barrel wear per gun.
+**Purpose:** Tracks Equivalent Full Charge barrel wear per gun, keyed to the physical barrel via DA Form 2408-4 data.
 
-For each gun, enter rounds fired at each charge level. The app calculates total EFC accumulated, remaining barrel life, and wear status (OK / MONITOR / REPLACE).
+#### Fleet Summary
+Always-visible header shows total fleet EFC, the highest-wear single gun, remaining barrel life on the worst-case tube, and a fleet wear status badge. Battery-level (or platoon/section) wear bars show worst-case wear per element.
+
+#### Per-Gun EFC Entry *(expandable)*
+For each gun, enter:
+- **Tube Serial No.** — from DA Form 2408-4 field 1. Ties this EFC record to a specific physical barrel. If the tube is replaced, reset EFC to zero, increment retubings, and enter the new serial number.
+- **Retubings** — number of times this gun has been retubed. When > 0, an amber note confirms that EFC reflects the current barrel only, not cumulative history across tubes.
+- **Rounds fired per charge type** — the app multiplies qty × EFC factor and accumulates the total.
 
 **Barrel life limits:**
 | System | Barrel Life |
@@ -474,9 +487,10 @@ For each gun, enter rounds fired at each charge level. The app calculates total 
 | M777A2 | 2,500 EFC |
 | M119A3 | 3,000 EFC |
 
-A fleet summary shows total EFC across all tubes and identifies the highest-wear gun.
+#### EFC Charge Reference *(expandable)*
+EFC conversion factors by charge type for the active weapon system. Lower charges impose proportionally less wear; Charge 5 (M232 max) = 1.0 EFC.
 
-Data persists and exports in the LOGSTAT.
+Data persists to browser storage and exports in the LOGSTAT. Source: DA Form 2408-4 / DA PAM 738-750.
 
 ---
 

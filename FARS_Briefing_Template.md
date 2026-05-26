@@ -71,7 +71,7 @@ PRIMARY TABS (first row — gold SITREP always visible)
 ├── Logistics            — RSR/CSR entry, haul capacity, utilization
 ├── DOS & Resupply       — Days of supply, runs per day, loss impact calculator
 ├── Fire Missions        — Mission sustainability, DC criteria, shell-fuze ref
-├── PAA & Storage        — Storage capacity, Q-D arc calculator
+├── PAA & Storage        — Position ammo status, reorder trigger, Q-D arc calculator
 └── Readiness            — PERSTAT, MAINTSTAT, NMC fault log, barrel wear
 
 REFERENCE / TOOLS TABS (second row)
@@ -158,7 +158,7 @@ REFERENCE / TOOLS TABS (second row)
 
 ---
 
-## SLIDE 9 — DEMO: Export / LOGSTAT
+## SLIDE 8b — DEMO: Export / LOGSTAT
 
 *[LIVE DEMO — Tab 10]*
 
@@ -201,7 +201,7 @@ REFERENCE / TOOLS TABS (second row)
 | **EFC Calculator** | Barrel wear per gun | Monitors barrel life against limits; flags guns approaching replacement |
 | **Training Cost** | FY24 OSMIS rates | Estimates CL I/II/III/IV/VIII/IX across event duration automatically |
 | **DODIC Reference** | Munition database | Auto-filters to current weapon system; searchable by name or type |
-| **PAA & Storage** | Q-D arc calculator | Quantity-distance arcs per munition type and quantity |
+| **PAA & Storage** | Position ammo status + reorder trigger | Enter rounds on hand — app shows time until empty and calls out when to request resupply based on turnaround time |
 | **Notes** | Freeform blocks | Planning notes with titles; copy-all to clipboard |
 
 ---
