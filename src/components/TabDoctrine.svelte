@@ -152,6 +152,30 @@
       category: 'Equipment — Barrel Life',
       items: [
         {
+          pub:    'DA Form 2408-4',
+          title:  'Weapon Record Data',
+          date:   'JAN 1979 (current edition in use)',
+          status: 'verified',
+          data: [
+            { what: 'Tube Serial No. — identifies the physical barrel; resets to zero when a tube is replaced (retubings column)', tabs: ['EFC'] },
+            { what: 'Rounds Fired / EFC RDS Fired / Cumulative EFC RDS — the per-event log FARS replicates in aggregate', tabs: ['EFC'] },
+            { what: 'Remaining Life (EFC RDS) — same metric shown in FARS barrel wear display', tabs: ['EFC'] },
+            { what: 'Remarks — Recoil Exercise (RE), gage/velocity readings, Safety Inspection (SI) — not tracked in FARS', tabs: ['EFC'] },
+          ],
+          note: 'DA Form 2408-4 is the authoritative Army record for tube barrel wear (DA PAM 738-750). FARS replicates the EFC calculation per-gun but does not replace the form. Record tube serial numbers and retubings in the EFC tab to keep FARS data tied to a specific barrel.',
+        },
+        {
+          pub:    'DA PAM 738-750 / 738-751',
+          title:  'The Army Maintenance Management System (TAMMS) Functional Users Manual',
+          date:   'Check current edition',
+          status: 'check',
+          data: [
+            { what: 'Governing procedures for DA Form 2408-4 — when to start a new form, how to record retubings and rebushings', tabs: ['EFC'] },
+            { what: 'EFC conversion table authority — charge-type EFC factors used in FARS barrel wear calculations', tabs: ['EFC'] },
+          ],
+          note: 'DA PAM 738-750 governs ground equipment; DA PAM 738-751 governs aviation. Verify current edition with unit S4/maintenance officer.',
+        },
+        {
           pub:    'Applicable -10 / -23 TMs',
           title:  'Weapon System Operator and Maintenance Manuals',
           date:   'Check current edition',

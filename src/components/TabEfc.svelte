@@ -11,7 +11,17 @@
   $: barrelLife = v.isM119 ? 3000 : (BARREL_LIFE[v.unitType] || 1500);
 
   // Per-gun EFC trackers — keyed by tube number (1..tubes)
-  let gunEfc = {};  // gunEfc[i] = { rounds per charge combo }
+  let gunEfc  = {};  // gunEfc[i]  = [{ charge, qty }, ...]
+  let tubeMeta = {}; // tubeMeta[i] = { serialNo: '', retubings: 0 }
+
+  function getTubeMeta(i) {
+    if (!tubeMeta[i]) tubeMeta[i] = { serialNo: '', retubings: 0 };
+    return tubeMeta[i];
+  }
+  function setMeta(tubeIdx, field, val) {
+    const meta = getTubeMeta(tubeIdx);
+    tubeMeta = { ...tubeMeta, [tubeIdx]: { ...meta, [field]: val } };
+  }
 
   $: tubeNums = Array.from({length: v.tubes || 0}, (_, i) => i + 1);
 
@@ -79,7 +89,6 @@
       if (raw) {
         const s = JSON.parse(raw);
         if (s.gunEfc != null) {
-          // Prune entries for tubes beyond current count
           const maxTube = v.tubes || 0;
           const pruned = {};
           for (const k of Object.keys(s.gunEfc)) {
@@ -87,6 +96,7 @@
           }
           gunEfc = pruned;
         }
+        if (s.tubeMeta != null) tubeMeta = s.tubeMeta;
       }
     } catch (_) {}
     _initialized = true;
@@ -94,7 +104,7 @@
 
   $: if (_initialized) {
     try {
-      localStorage.setItem('fars_efc_v1', JSON.stringify({ gunEfc }));
+      localStorage.setItem('fars_efc_v1', JSON.stringify({ gunEfc, tubeMeta }));
     } catch (_) {}
   }
 
@@ -105,7 +115,7 @@
 
   const INFO = {
     ref: 'EFC factors convert each charge type into an equivalent number of "full charge" barrel wear units. A Charge 5 (max) = 1.0 EFC; lower charges and propellants impose proportionally less wear. Use this table to convert your actual rounds fired by charge into total barrel wear.',
-    entry: 'Enter the number of rounds fired per charge type for each gun. FARS multiplies qty × EFC factor to calculate cumulative barrel wear. Update this after each fire mission or training event to keep wear totals current. Data persists in your browser.',
+    entry: 'Enter tube serial number and retubing count from DA Form 2408-4 to tie each EFC record to a specific barrel. If a tube has been replaced, reset that gun\'s EFC to zero and increment the retubing count — the EFC counter tracks the current barrel only. Enter rounds fired per charge type; FARS multiplies qty × EFC factor to calculate cumulative barrel wear.',
   };
 </script>
 
@@ -193,7 +203,26 @@
           {@const total = calcGunTotalEfc(i)}
           {@const pct = Math.min(total / barrelLife * 100, 100)}
           <div class="efc-tube-card">
-            <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:10px;">Gun #{i}</div>
+            <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:8px;">Gun #{i}</div>
+            <div style="display:grid;grid-template-columns:1fr 80px;gap:8px;margin-bottom:10px;">
+              <div class="field" style="margin:0;">
+                <label style="font-size:10px;">Tube Serial No.</label>
+                <input type="text" placeholder="—" style="font-size:11px;"
+                  value={getTubeMeta(i).serialNo}
+                  on:input={e => setMeta(i, 'serialNo', e.target.value)}>
+              </div>
+              <div class="field" style="margin:0;">
+                <label style="font-size:10px;">Retubings</label>
+                <input type="number" min="0" style="font-size:11px;"
+                  value={getTubeMeta(i).retubings}
+                  on:input={e => setMeta(i, 'retubings', parseInt(e.target.value) || 0)}>
+              </div>
+            </div>
+            {#if getTubeMeta(i).retubings > 0}
+              <div style="font-size:10px;color:var(--od-warn);margin-bottom:8px;">
+                ⚠ {getTubeMeta(i).retubings} retubing{getTubeMeta(i).retubings > 1 ? 's' : ''} recorded — EFC reflects current barrel only
+              </div>
+            {/if}
             {#each efcTable as row, ci}
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
                 <label style="font-size:11px;color:var(--text-dim);flex:1;line-height:1.2;">{row.charge}</label>
